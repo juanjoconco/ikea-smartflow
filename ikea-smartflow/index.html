@@ -932,22 +932,33 @@ function imgOrSvg(p,cls,size){
 }
 
 function renderHomeProds(){
-  document.getElementById('home-prod-list').innerHTML=Object.values(P).map(p=>`
+  document.getElementById('home-prod-list').innerHTML =
+    Object.values(P).map(p => `
+    
     <div class="prod-card" onclick="openModal('${p.id}')">
-      <div class="prod-img-box">${imgOrSvg(p)}</div>
-      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
-      <div class="prod-price">${fmt(p.price)}</div>
-      <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>`).join('');
-}
-function renderDPList(){
-  document.getElementById('dp-list').innerHTML=Object.values(P).map(p=>`
-    <div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')">
-      <div class="dp-icon">${imgOrSvg(p)}</div>
-      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
-      <div class="dp-pr">${fmt(p.price)}</div>
-      <div class="dp-act dp-add" id="db-${p.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-    </div>`).join('');
+
+      <div class="prod-img-box">
+        ${imgOrSvg(p)}
+      </div>
+
+      <div class="prod-inf">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-desc">${p.desc}</div>
+      </div>
+
+      <div class="prod-price">
+        ${fmt(p.price)}
+      </div>
+
+      <div class="prod-chev">
+        <svg viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+
+    </div>
+
+  `).join('');
 }
 
 // ── MODAL ──
