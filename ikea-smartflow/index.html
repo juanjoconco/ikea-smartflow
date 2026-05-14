@@ -839,10 +839,14 @@ function startScanner(){
   try{if(html5Qr){html5Qr.clear();}}catch(e){}
   html5Qr=new Html5Qrcode('qr-reader',{verbose:false});
 
+  Html5Qrcode.getCameras().then(cams=>{
+  console.log(cams);
+  });
+
   html5Qr.start(
     {facingMode:'environment'},
-    {fps:10,
-     qrbox:{width:190,height:190},
+    {fps:15,
+     qrbox:{width:260,height:260},
      aspectRatio:1.0,
      disableFlip:false},
     onQrSuccess,
