@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#0058A3"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>IKEA SmartFlow</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --ikea-blue:#0058A3;
+    --ikea-blue-dark:#004f93;
+    --ikea-yellow:#FFDB00;
+    --ikea-yellow-dark:#e6c500;
+    --bg:#F5F5F0;
+    --white:#FFFFFF;
+    --gray1:#F7F7F2;
+    --gray2:#EBEBEB;
+    --gray3:#CCCCCC;
+    --gray4:#767676;
+    --gray5:#333333;
+    --text:#111111;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg:0 8px 32px rgba(0,0,0,0.14);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    max-width:430px;
+    margin:0 auto;
+    position:relative;
+    overflow-x:hidden;
+  }
+  #app{display:flex;flex-direction:column;min-height:100vh;}
+
+  /* ── SCREENS ── */
+  .screen{display:none;flex-direction:column;flex:1;padding-bottom:76px;}
+  .screen.active{display:flex;}
+
+  /* ── TOP BAR ── */
+  .topbar{
+    background:var(--white);
+    padding:16px 20px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--gray2);
+    position:sticky;top:0;z-index:100;
+  }
+  .topbar-logo{display:flex;align-items:center;gap:10px;}
+  .ikea-logo{
+    background:var(--ikea-blue);color:var(--white);
+    font-weight:800;font-size:15px;letter-spacing:1px;
+    padding:5px 10px;border-radius:4px;
+  }
+  .topbar-title{font-size:15px;font-weight:600;color:var(--gray5);}
+  .topbar-icon{
+    width:38px;height:38px;border-radius:50%;
+    background:var(--gray1);border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:var(--gray5);
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:430px;
+    background:var(--white);border-top:1px solid var(--gray2);
+    display:flex;
+    z-index:200;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .nav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    padding:10px 0 8px;cursor:pointer;border:none;background:none;
+    position:relative;
+  }
+  .nav-icon{font-size:22px;line-height:1;}
+  .nav-label{font-size:10px;margin-top:3px;color:var(--gray4);font-weight:500;}
+  .nav-item.active .nav-icon{color:var(--ikea-blue);}
+  .nav-item.active .nav-label{color:var(--ikea-blue);}
+  .nav-badge{
+    position:absolute;top:6px;right:calc(50% - 18px);
+    background:#E53935;color:#fff;
+    font-size:9px;font-weight:700;
+    width:16px;height:16px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ── CARDS ── */
+  .card{
+    background:var(--white);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary{
+    background:var(--ikea-blue);color:var(--white);
+    border:none;border-radius:var(--radius-sm);
+    padding:14px 20px;font-size:15px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;transition:background 0.15s;
+  }
+  .btn-primary:active{background:var(--ikea-blue-dark);}
+  .btn-yellow{
+    background:var(--ikea-yellow);color:var(--text);
+    border:none;border-radius:var(--radius-sm);
+    padding:14px 20px;font-size:15px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;transition:background 0.15s;
+  }
+  .btn-yellow:active{background:var(--ikea-yellow-dark);}
+  .btn-outline{
+    background:transparent;color:var(--ikea-blue);
+    border:1.5px solid var(--ikea-blue);border-radius:var(--radius-sm);
+    padding:12px 20px;font-size:14px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;
+  }
+
+  /* ══════════════════════════════════
+     SCREEN 1 – INICIO
+  ══════════════════════════════════ */
+  .home-hero{
+    background:var(--ikea-blue);
+    padding:24px 20px 20px;
+    color:var(--white);
+  }
+  .home-hero h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .home-hero p{font-size:14px;opacity:0.85;margin-bottom:16px;}
+  .search-box{
+    background:var(--white);border-radius:var(--radius-sm);
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+  }
+  .search-box span{font-size:18px;color:var(--gray4);}
+  .search-box input{
+    border:none;outline:none;font-size:14px;color:var(--text);
+    flex:1;background:transparent;
+  }
+  .section-title{
+    font-size:16px;font-weight:700;color:var(--text);
+    padding:20px 20px 12px;
+  }
+  .ambientes-row{
+    display:flex;gap:12px;padding:0 20px 4px;
+    overflow-x:auto;scrollbar-width:none;
+  }
+  .ambientes-row::-webkit-scrollbar{display:none;}
+  .ambiente-chip{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    cursor:pointer;flex-shrink:0;
+  }
+  .ambiente-img{
+    width:80px;height:80px;border-radius:var(--radius);
+    object-fit:cover;display:flex;align-items:center;justify-content:center;
+    font-size:32px;background:var(--gray1);
+    border:2px solid transparent;transition:border-color 0.15s;
+  }
+  .ambiente-chip.active .ambiente-img{border-color:var(--ikea-blue);}
+  .ambiente-label{font-size:11px;font-weight:600;color:var(--gray5);}
+  .inspiracion-card{
+    margin:0 20px;border-radius:var(--radius);overflow:hidden;
+    background:var(--ikea-blue);padding:20px;
+    color:var(--white);position:relative;cursor:pointer;
+  }
+  .inspiracion-card h3{font-size:18px;font-weight:700;margin-bottom:4px;}
+  .inspiracion-card p{font-size:13px;opacity:0.85;margin-bottom:14px;}
+  .inspiracion-emoji{
+    position:absolute;right:20px;top:50%;transform:translateY(-50%);
+    font-size:52px;opacity:0.3;
+  }
+  .qr-btn{
+    background:var(--ikea-yellow);color:var(--text);
+    margin:16px 20px 0;border:none;border-radius:var(--radius-sm);
+    padding:16px;font-size:16px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+    width:calc(100% - 40px);
+  }
+
+  /* ══════════════════════════════════
+     SCREEN 2 – ESCÁNER
+  ══════════════════════════════════ */
+  .scanner-area{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    padding:20px;
+  }
+  .scanner-viewport{
+    width:100%;aspect-ratio:1;border-radius:var(--radius);
+    background:#111;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    max-height:320px;
+  }
+  .scanner-corners{position:absolute;inset:24px;}
+  .corner{
+    position:absolute;width:28px;height:28px;
+    border-color:var(--ikea-yellow);border-style:solid;
+  }
+  .corner-tl{top:0;left:0;border-width:4px 0 0 4px;border-radius:4px 0 0 4px;}
+  .corner-tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 4px 0 0;}
+  .corner-bl{bottom:0;left:0;border-width:0 0 4px 4px;border-radius:0 0 0 4px;}
+  .corner-br{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 4px 4px 0;}
+  .scan-line{
+    position:absolute;left:24px;right:24px;height:2px;
+    background:var(--ikea-yellow);opacity:0.9;
+    animation:scanAnim 2s ease-in-out infinite;
+  }
+  @keyframes scanAnim{
+    0%,100%{top:24px;}
+    50%{top:calc(100% - 24px);}
+  }
+  .scanner-hint{font-size:14px;color:var(--gray4);margin-top:16px;text-align:center;}
+  .products-demo{padding:0 20px;}
+  .demo-product{
+    background:var(--white);border-radius:var(--radius-sm);
+    padding:14px 16px;margin-bottom:10px;
+    display:flex;align-items:center;gap:14px;
+    box-shadow:var(--shadow);cursor:pointer;
+    transition:transform 0.15s;border:2px solid transparent;
+  }
+  .demo-product:active{transform:scale(0.98);}
+  .demo-product.scanned{border-color:var(--ikea-blue);}
+  .demo-product-emoji{font-size:32px;width:48px;text-align:center;}
+  .demo-product-info{flex:1;}
+  .demo-product-name{font-size:14px;font-weight:700;color:var(--text);}
+  .demo-product-desc{font-size:12px;color:var(--gray4);margin-top:2px;}
+  .demo-product-price{font-size:14px;font-weight:700;color:var(--ikea-blue);}
+  .scan-check{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--ikea-blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;flex-shrink:0;
+  }
+  .scan-add{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--gray2);color:var(--gray4);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0;
+  }
+
+  /* scan toast */
+  .toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--text);color:#fff;
+    padding:12px 20px;border-radius:24px;
+    font-size:14px;font-weight:600;
+    opacity:0;transition:all 0.3s;white-space:nowrap;z-index:500;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ══════════════════════════════════
+     SCREEN 3 – MI LISTA
+  ══════════════════════════════════ */
+  .lista-header{
+    background:var(--white);padding:16px 20px;
+    border-bottom:1px solid var(--gray2);
+  }
+  .lista-header h2{font-size:18px;font-weight:700;}
+  .lista-header p{font-size:13px;color:var(--gray4);margin-top:2px;}
+  .lista-items{flex:1;padding:12px 20px;}
+  .lista-item{
+    background:var(--white);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:10px;
+    display:flex;align-items:center;gap:14px;
+    box-shadow:var(--shadow);
+  }
+  .lista-item-emoji{font-size:28px;width:44px;text-align:center;}
+  .lista-item-info{flex:1;}
+  .lista-item-name{font-size:14px;font-weight:700;}
+  .lista-item-sub{font-size:12px;color:var(--gray4);margin-top:2px;}
+  .lista-item-price{font-size:14px;font-weight:700;color:var(--text);}
+  .qty-control{
+    display:flex;align-items:center;gap:8px;margin-top:6px;
+  }
+  .qty-btn{
+    width:26px;height:26px;border-radius:50%;border:1.5px solid var(--gray3);
+    background:none;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:var(--gray5);
+  }
+  .qty-val{font-size:14px;font-weight:600;min-width:20px;text-align:center;}
+  .remove-btn{
+    width:32px;height:32px;border:none;background:none;cursor:pointer;
+    color:var(--gray3);font-size:20px;flex-shrink:0;
+  }
+  .lista-footer{
+    background:var(--white);padding:16px 20px 20px;
+    border-top:1px solid var(--gray2);
+  }
+  .total-row{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:14px;
+  }
+  .total-label{font-size:15px;font-weight:600;}
+  .total-val{font-size:20px;font-weight:800;color:var(--ikea-blue);}
+  .empty-state{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:40px 20px;text-align:center;
+  }
+  .empty-state .emoji{font-size:56px;margin-bottom:16px;}
+  .empty-state h3{font-size:18px;font-weight:700;margin-bottom:8px;}
+  .empty-state p{font-size:14px;color:var(--gray4);margin-bottom:24px;line-height:1.5;}
+
+  /* ══════════════════════════════════
+     SCREEN 4 – MAPA / RUTA
+  ══════════════════════════════════ */
+  .mapa-header{
+    background:var(--white);padding:16px 20px;
+    border-bottom:1px solid var(--gray2);
+  }
+  .mapa-header h2{font-size:18px;font-weight:700;}
+  .mapa-header p{font-size:13px;color:var(--gray4);margin-top:2px;}
+  .mapa-container{
+    flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:14px;
+  }
+  .store-map{
+    background:var(--white);border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow);
+  }
+  .map-svg-wrap{position:relative;width:100%;}
+  .next-stop{
+    background:var(--ikea-blue);color:#fff;
+    border-radius:var(--radius);padding:14px 16px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .next-stop-icon{font-size:28px;}
+  .next-stop-info{flex:1;}
+  .next-stop-label{font-size:11px;opacity:0.75;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+  .next-stop-name{font-size:16px;font-weight:700;margin-top:2px;}
+  .next-stop-loc{font-size:12px;opacity:0.8;margin-top:2px;}
+  .route-steps{background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  .route-step{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;border-bottom:1px solid var(--gray2);
+    position:relative;
+  }
+  .route-step:last-child{border-bottom:none;}
+  .step-num{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--ikea-blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;flex-shrink:0;
+  }
+  .step-num.done{background:var(--gray3);}
+  .step-info{flex:1;}
+  .step-name{font-size:14px;font-weight:700;}
+  .step-loc{font-size:12px;color:var(--gray4);margin-top:2px;}
+  .step-emoji{font-size:20px;}
+
+  /* ══════════════════════════════════
+     SCREEN 5 – RETO IKEA
+  ══════════════════════════════════ */
+  .reto-header{
+    background:linear-gradient(135deg,var(--ikea-blue) 0%,#0073CF 100%);
+    padding:24px 20px 20px;color:#fff;
+  }
+  .reto-header h2{font-size:22px;font-weight:800;}
+  .reto-header p{font-size:13px;opacity:0.85;margin-top:4px;}
+  .reto-points{
+    background:rgba(255,255,255,0.2);border-radius:var(--radius-sm);
+    padding:12px 16px;margin-top:16px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .reto-points-label{font-size:13px;opacity:0.85;}
+  .reto-points-val{font-size:22px;font-weight:800;}
+  .progress-bar{
+    height:8px;background:rgba(255,255,255,0.3);
+    border-radius:4px;margin-top:10px;overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;background:var(--ikea-yellow);border-radius:4px;
+    transition:width 0.5s ease;
+  }
+  .reto-body{padding:16px 20px;flex:1;}
+  .reto-section-title{font-size:13px;font-weight:700;color:var(--gray4);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+  .challenge-item{
+    background:var(--white);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:10px;
+    display:flex;align-items:center;gap:14px;
+    box-shadow:var(--shadow);cursor:pointer;
+    transition:transform 0.15s;
+  }
+  .challenge-item:active{transform:scale(0.98);}
+  .challenge-icon{
+    width:44px;height:44px;border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0;
+  }
+  .c-red{background:#FFEBEE;}
+  .c-amber{background:#FFF8E1;}
+  .c-green{background:#E8F5E9;}
+  .challenge-info{flex:1;}
+  .challenge-name{font-size:14px;font-weight:700;}
+  .challenge-pts{font-size:12px;color:var(--ikea-blue);font-weight:600;margin-top:2px;}
+  .challenge-status{font-size:20px;}
+  .reward-card{
+    background:var(--ikea-yellow);border-radius:var(--radius);
+    padding:16px;display:flex;align-items:center;gap:14px;
+    margin-top:6px;cursor:pointer;
+  }
+  .reward-info h3{font-size:15px;font-weight:700;color:var(--text);}
+  .reward-info p{font-size:13px;color:var(--gray5);margin-top:2px;}
+
+  /* ══════════════════════════════════
+     MODALS / OVERLAYS
+  ══════════════════════════════════ */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);
+    z-index:300;display:none;align-items:flex-end;
+    max-width:430px;margin:0 auto;
+  }
+  .overlay.show{display:flex;}
+  .modal-sheet{
+    background:var(--white);width:100%;border-radius:20px 20px 0 0;
+    padding:8px 20px 32px;max-height:85vh;overflow-y:auto;
+  }
+  .modal-handle{
+    width:36px;height:4px;background:var(--gray3);
+    border-radius:2px;margin:10px auto 16px;
+  }
+  .modal-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+  .modal-sub{font-size:13px;color:var(--gray4);margin-bottom:20px;}
+  .product-preview{
+    background:var(--gray1);border-radius:var(--radius);
+    padding:20px;display:flex;align-items:center;gap:16px;
+    margin-bottom:20px;
+  }
+  .product-preview-emoji{font-size:48px;}
+  .product-preview-name{font-size:16px;font-weight:800;}
+  .product-preview-desc{font-size:13px;color:var(--gray4);margin-top:4px;}
+  .product-preview-price{font-size:18px;font-weight:700;color:var(--ikea-blue);margin-top:6px;}
+  .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray2);}
+  .info-row:last-child{border-bottom:none;}
+  .info-label{font-size:13px;color:var(--gray4);}
+  .info-val{font-size:13px;font-weight:600;}
+  .stock-ok{color:#2E7D32;}
+  .modal-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+
+  /* animations */
+  @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .slide-up{animation:slideUp 0.3s ease forwards;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════ SCREEN: INICIO ════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-hero">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="ikea-logo">IKEA</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#fff;">SmartFlow</div>
+          <div style="font-size:11px;opacity:0.7;color:#fff;">Tu compra, más fácil y guiada</div>
+        </div>
+        <div style="margin-left:auto;">
+          <div style="background:rgba(255,255,255,0.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">🔔</div>
+        </div>
+      </div>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar productos o ambientes..."/>
+      </div>
+    </div>
+
+    <div class="section-title">Explora ambientes</div>
+    <div class="ambientes-row">
+      <div class="ambiente-chip active" onclick="selectAmbiente(this,'Salas')">
+        <div class="ambiente-img">🛋️</div>
+        <div class="ambiente-label">Salas</div>
+      </div>
+      <div class="ambiente-chip" onclick="selectAmbiente(this,'Dormitorios')">
+        <div class="ambiente-img">🛏️</div>
+        <div class="ambiente-label">Dormitorios</div>
+      </div>
+      <div class="ambiente-chip" onclick="selectAmbiente(this,'Cocinas')">
+        <div class="ambiente-img">🍳</div>
+        <div class="ambiente-label">Cocinas</div>
+      </div>
+      <div class="ambiente-chip" onclick="selectAmbiente(this,'Oficina')">
+        <div class="ambiente-img">🖥️</div>
+        <div class="ambiente-label">Oficina</div>
+      </div>
+      <div class="ambiente-chip" onclick="selectAmbiente(this,'Baños')">
+        <div class="ambiente-img">🚿</div>
+        <div class="ambiente-label">Baños</div>
+      </div>
+    </div>
+
+    <div style="margin:16px 20px 0;">
+      <div class="inspiracion-card" onclick="goTo('home')">
+        <h3>Espacios pequeños,<br>grandes ideas</h3>
+        <p>Ver ideas →</p>
+        <div class="inspiracion-emoji">🏠</div>
+      </div>
+    </div>
+
+    <div class="section-title">Inspiración para ti</div>
+    <div style="padding:0 20px 6px;display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openProductModal('sofa')">
+        <span style="font-size:28px;">🛋️</span>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;">SÖDERHAMN</div>
+          <div style="font-size:12px;color:var(--gray4);">Sofá de 3 puestos, Viarp beige</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--ikea-blue);">$2.199.900</div>
+      </div>
+      <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openProductModal('mesa')">
+        <span style="font-size:28px;">🪑</span>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;">LACK</div>
+          <div style="font-size:12px;color:var(--gray4);">Mesa auxiliar, negro-marrón 55x55 cm</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--ikea-blue);">$79.900</div>
+      </div>
+    </div>
+
+    <div style="padding:16px 20px 0;">
+      <button class="qr-btn" onclick="goTo('scanner')">
+        <span style="font-size:22px;">📷</span> Escanear QR
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN: ESCÁNER ════════ -->
+  <div class="screen" id="screen-scanner">
+    <div class="topbar">
+      <div class="topbar-logo">
+        <div class="ikea-logo">IKEA</div>
+        <div class="topbar-title">Escanear producto</div>
+      </div>
+      <button class="topbar-icon" onclick="goTo('home')">✕</button>
+    </div>
+
+    <div class="scanner-area">
+      <div class="scanner-viewport">
+        <div class="scanner-corners">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div>
+          <div class="corner corner-br"></div>
+        </div>
+        <div class="scan-line"></div>
+        <div style="color:#666;font-size:14px;text-align:center;padding:20px;">
+          📷 Cámara en modo demo<br>
+          <span style="font-size:12px;opacity:0.7;">Toca un producto abajo para simular el escaneo</span>
+        </div>
+      </div>
+      <p class="scanner-hint">Enfoca el código QR de cualquier producto o ambiente</p>
+    </div>
+
+    <div style="padding:0 20px 8px;font-size:13px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:0.5px;">Simular escaneo</div>
+    <div class="products-demo" id="demo-products">
+      <div class="demo-product" id="dp-sofa" onclick="scanProduct('sofa')">
+        <div class="demo-product-emoji">🛋️</div>
+        <div class="demo-product-info">
+          <div class="demo-product-name">SÖDERHAMN</div>
+          <div class="demo-product-desc">Sofá 3 puestos · Sala exposición N2</div>
+        </div>
+        <div class="demo-product-price">$2.199.900</div>
+        <div class="scan-add">＋</div>
+      </div>
+      <div class="demo-product" id="dp-mesa" onclick="scanProduct('mesa')">
+        <div class="demo-product-emoji">🪑</div>
+        <div class="demo-product-info">
+          <div class="demo-product-name">LACK</div>
+          <div class="demo-product-desc">Mesa auxiliar · Mercado Muebles P21</div>
+        </div>
+        <div class="demo-product-price">$79.900</div>
+        <div class="scan-add">＋</div>
+      </div>
+      <div class="demo-product" id="dp-comoda" onclick="scanProduct('comoda')">
+        <div class="demo-product-emoji">🗄️</div>
+        <div class="demo-product-info">
+          <div class="demo-product-name">HEMNES</div>
+          <div class="demo-product-desc">Cómoda 8 cajones · Dormitorios N1</div>
+        </div>
+        <div class="demo-product-price">$1.299.900</div>
+        <div class="scan-add">＋</div>
+      </div>
+      <div class="demo-product" id="dp-cojin" onclick="scanProduct('cojin')">
+        <div class="demo-product-emoji">🧸</div>
+        <div class="demo-product-info">
+          <div class="demo-product-name">FJÄDRAR</div>
+          <div class="demo-product-desc">Cojín, gris · Accesorios P8</div>
+        </div>
+        <div class="demo-product-price">$49.900</div>
+        <div class="scan-add">＋</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN: MI LISTA ════════ -->
+  <div class="screen" id="screen-lista">
+    <div class="lista-header">
+      <h2>Mi lista</h2>
+      <p id="lista-count">0 productos guardados</p>
+    </div>
+
+    <div id="lista-empty" class="empty-state">
+      <div class="emoji">🛒</div>
+      <h3>Tu lista está vacía</h3>
+      <p>Escanea productos en la tienda o explora los ambientes para agregarlos aquí.</p>
+      <button class="btn-primary" style="width:auto;padding:12px 24px;" onclick="goTo('scanner')">📷 Ir a escanear</button>
+    </div>
+
+    <div id="lista-content" style="display:none;flex-direction:column;flex:1;">
+      <div class="lista-items" id="lista-items-container"></div>
+      <div class="lista-footer">
+        <div class="total-row">
+          <div class="total-label">Total estimado</div>
+          <div class="total-val" id="lista-total">$0</div>
+        </div>
+        <button class="btn-yellow" onclick="goTo('mapa')">📍 Ver mi ruta en la tienda →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN: MAPA / RUTA ════════ -->
+  <div class="screen" id="screen-mapa">
+    <div class="mapa-header">
+      <h2>Mi ruta en tienda</h2>
+      <p id="mapa-loc">Tu ubicación: Entrada principal</p>
+    </div>
+
+    <div class="mapa-container">
+
+      <!-- Mapa SVG simple -->
+      <div class="store-map">
+        <div style="font-size:12px;font-weight:700;color:var(--gray4);margin-bottom:10px;">PLANTA DE LA TIENDA</div>
+        <svg viewBox="0 0 320 200" width="100%" style="display:block;" id="store-svg">
+          <!-- floor -->
+          <rect x="10" y="10" width="300" height="180" rx="8" fill="#F7F7F2" stroke="#CCCCCC" stroke-width="1"/>
+          <!-- zones -->
+          <rect x="20" y="20" width="85" height="70" rx="6" fill="#E3F0FB" stroke="#0058A3" stroke-width="1.5"/>
+          <text x="62" y="52" text-anchor="middle" font-size="9" fill="#0058A3" font-weight="700">SALA</text>
+          <text x="62" y="64" text-anchor="middle" font-size="9" fill="#0058A3">EXPOSICIÓN</text>
+
+          <rect x="115" y="20" width="85" height="70" rx="6" fill="#FFF8E1" stroke="#e6c500" stroke-width="1.5"/>
+          <text x="157" y="52" text-anchor="middle" font-size="9" fill="#a08000" font-weight="700">DORMITORIOS</text>
+
+          <rect x="210" y="20" width="90" height="70" rx="6" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+          <text x="255" y="52" text-anchor="middle" font-size="9" fill="#2E7D32" font-weight="700">COCINAS</text>
+
+          <rect x="20" y="105" width="280" height="75" rx="6" fill="#F5F5F0" stroke="#CCCCCC" stroke-width="1"/>
+          <text x="160" y="138" text-anchor="middle" font-size="9" fill="#767676" font-weight="700">MERCADO / AUTOSERVICIO</text>
+
+          <!-- route line -->
+          <polyline id="route-line" points="30,150 30,55 62,55 115,55 157,55 200,55 255,55 255,90 255,115 160,115"
+            fill="none" stroke="#0058A3" stroke-width="2.5" stroke-dasharray="6,4" stroke-linecap="round"/>
+
+          <!-- stops -->
+          <circle id="stop1" cx="62" cy="55" r="10" fill="#0058A3"/>
+          <text x="62" y="59" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">1</text>
+
+          <circle id="stop2" cx="255" cy="55" r="10" fill="#0058A3" opacity="0.4"/>
+          <text x="255" y="59" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">2</text>
+
+          <circle id="stop3" cx="160" cy="115" r="10" fill="#0058A3" opacity="0.3"/>
+          <text x="160" y="119" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">3</text>
+
+          <!-- current pos -->
+          <circle cx="30" cy="150" r="7" fill="#FFDB00" stroke="#0058A3" stroke-width="2"/>
+          <text x="30" y="154" text-anchor="middle" font-size="7" fill="#0058A3" font-weight="700">Tú</text>
+        </svg>
+      </div>
+
+      <!-- next stop -->
+      <div class="next-stop" id="next-stop-card">
+        <div class="next-stop-icon">🛋️</div>
+        <div class="next-stop-info">
+          <div class="next-stop-label">Siguiente parada</div>
+          <div class="next-stop-name" id="next-stop-name">SÖDERHAMN</div>
+          <div class="next-stop-loc" id="next-stop-loc">Sala de exposición · Nivel 2</div>
+        </div>
+        <div style="font-size:22px;">→</div>
+      </div>
+
+      <!-- route steps -->
+      <div class="route-steps" id="route-steps-list"></div>
+
+      <button class="btn-yellow" id="start-nav-btn" onclick="startNav()">📍 Iniciar navegación</button>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN: RETO IKEA ════════ -->
+  <div class="screen" id="screen-reto">
+    <div class="reto-header">
+      <h2>🎯 IKEA Smart Hunt</h2>
+      <p>¡Explora, encuentra y gana!</p>
+      <div class="reto-points">
+        <div>
+          <div class="reto-points-label">Tus puntos</div>
+          <div class="reto-points-val" id="reto-pts">120 pts</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="reto-points-label">Progreso</div>
+          <div class="reto-points-val" id="reto-prog">3 / 10</div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:30%;"></div></div>
+    </div>
+
+    <div class="reto-body">
+      <div class="reto-section-title">Desafíos activos</div>
+      <div class="challenge-item" id="ch1" onclick="completeChallenge('ch1',10,'Encuentra un producto de sala')">
+        <div class="challenge-icon c-red">🛋️</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Encuentra un producto de sala</div>
+          <div class="challenge-pts">+10 pts</div>
+        </div>
+        <div class="challenge-status" id="ch1-status">→</div>
+      </div>
+      <div class="challenge-item" id="ch2" onclick="completeChallenge('ch2',10,'Escanea un producto de iluminación')">
+        <div class="challenge-icon c-amber">💡</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Escanea un producto de iluminación</div>
+          <div class="challenge-pts">+10 pts</div>
+        </div>
+        <div class="challenge-status" id="ch2-status">→</div>
+      </div>
+      <div class="challenge-item" id="ch3" onclick="completeChallenge('ch3',10,'Encuentra un accesorio de decoración')">
+        <div class="challenge-icon c-green">🎨</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Encuentra un accesorio de decoración</div>
+          <div class="challenge-pts">+10 pts</div>
+        </div>
+        <div class="challenge-status" id="ch3-status">→</div>
+      </div>
+      <div class="challenge-item" onclick="completeChallenge('ch4',15,'Crea una lista con 4+ productos')">
+        <div class="challenge-icon" style="background:#E3F0FB;">📋</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Crea una lista con 4+ productos</div>
+          <div class="challenge-pts">+15 pts</div>
+        </div>
+        <div class="challenge-status" id="ch4-status">→</div>
+      </div>
+
+      <div class="reto-section-title" style="margin-top:16px;">Recompensas disponibles</div>
+      <div class="reward-card" onclick="showReward()">
+        <div style="font-size:36px;">🎁</div>
+        <div class="reward-info">
+          <h3>¡Canjea tus puntos!</h3>
+          <p>Con 200 pts obtienes 10% de descuento en tu compra</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ BOTTOM NAV ════════ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-item" id="nav-scanner" onclick="goTo('scanner')">
+      <span class="nav-icon">📷</span>
+      <span class="nav-label">Escanear</span>
+    </button>
+    <button class="nav-item" id="nav-lista" onclick="goTo('lista')">
+      <span class="nav-icon">❤️</span>
+      <span class="nav-label">Lista</span>
+      <div class="nav-badge" id="lista-badge" style="display:none;">0</div>
+    </button>
+    <button class="nav-item" id="nav-mapa" onclick="goTo('mapa')">
+      <span class="nav-icon">📍</span>
+      <span class="nav-label">Mapa</span>
+    </button>
+    <button class="nav-item" id="nav-reto" onclick="goTo('reto')">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">Reto</span>
+    </button>
+  </nav>
+
+  <!-- ════════ PRODUCT MODAL ════════ -->
+  <div class="overlay" id="product-overlay" onclick="closeModal(event)">
+    <div class="modal-sheet slide-up" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ════════ TOAST ════════ -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── STATE ──
+const products = {
+  sofa:{id:'sofa',name:'SÖDERHAMN',desc:'Sofá 3 puestos, Viarp beige',price:2199900,emoji:'🛋️',loc:'Sala de exposición · Nivel 2',measures:'3 puestos · 274x99x83 cm',color:'Viarp beige'},
+  mesa:{id:'mesa',name:'LACK',desc:'Mesa auxiliar, negro-marrón 55x55 cm',price:79900,emoji:'🪑',loc:'Mercado Muebles · Pasillo 21, E3',measures:'55×55×45 cm',color:'Negro-marrón'},
+  comoda:{id:'comoda',name:'HEMNES',desc:'Cómoda 8 cajones, blanco tinte',price:1299900,emoji:'🗄️',loc:'Dormitorios · Nivel 1',measures:'160×37×96 cm',color:'Blanco tinte'},
+  cojin:{id:'cojin',name:'FJÄDRAR',desc:'Cojín interior, gris',price:49900,emoji:'🧸',loc:'Accesorios · Pasillo 8',measures:'50×50 cm',color:'Gris'}
+};
+
+let cart = {};
+let retoPoints = 120;
+let retoProgress = 3;
+let completedChallenges = {};
+let navHistory = ['home'];
+
+// ── NAVIGATION ──
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const s = document.getElementById('screen-'+screen);
+  const n = document.getElementById('nav-'+screen);
+  if(s) s.classList.add('active');
+  if(n) n.classList.add('active');
+  if(screen==='lista') renderLista();
+  if(screen==='mapa') renderMapa();
+}
+
+// ── SCAN ──
+function scanProduct(id){
+  const p = products[id];
+  if(!p) return;
+  if(cart[id]){
+    showToast('✅ '+p.name+' ya está en tu lista');
+    return;
+  }
+  cart[id] = {product:p, qty:1};
+  updateBadge();
+
+  // mark scanned
+  const el = document.getElementById('dp-'+id);
+  if(el){
+    el.classList.add('scanned');
+    el.querySelector('.scan-add').className='scan-check';
+    el.querySelector('.scan-check').textContent='✓';
+  }
+  showToast('🛋️ '+p.name+' guardado en tu lista');
+  openProductModal(id);
+}
+
+// ── MODAL ──
+const modalData = {};
+function openProductModal(id){
+  const p = products[id];
+  if(!p) return;
+  modalData.current = id;
+  const inCart = !!cart[id];
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-title">${p.name}</div>
+    <div class="modal-sub">${p.desc}</div>
+    <div class="product-preview">
+      <div class="product-preview-emoji">${p.emoji}</div>
+      <div>
+        <div class="product-preview-name">${p.name}</div>
+        <div class="product-preview-desc">${p.desc}</div>
+        <div class="product-preview-price">${fmt(p.price)}</div>
+      </div>
+    </div>
+    <div class="info-row"><div class="info-label">Ubicación en tienda</div><div class="info-val">${p.loc}</div></div>
+    <div class="info-row"><div class="info-label">Medidas</div><div class="info-val">${p.measures}</div></div>
+    <div class="info-row"><div class="info-label">Color</div><div class="info-val">${p.color}</div></div>
+    <div class="info-row"><div class="info-label">Disponibilidad</div><div class="info-val stock-ok">✅ En stock</div></div>
+    <div class="modal-actions">
+      ${inCart
+        ? '<button class="btn-outline" onclick="closeOverlay()">✓ Ya está en tu lista</button>'
+        : `<button class="btn-primary" onclick="addFromModal('${id}')">❤️ Guardar en mi lista</button>`
+      }
+      <button class="btn-outline" onclick="closeOverlay()">Ver en mapa →</button>
+    </div>
+  `;
+  document.getElementById('product-overlay').classList.add('show');
+}
+
+function addFromModal(id){
+  const p = products[id];
+  cart[id] = {product:p,qty:1};
+  updateBadge();
+  showToast('✅ '+p.name+' agregado');
+  closeOverlay();
+  if(document.getElementById('dp-'+id)){
+    const el = document.getElementById('dp-'+id);
+    el.classList.add('scanned');
+    el.querySelector('.scan-add').className='scan-check';
+    el.querySelector('.scan-check').textContent='✓';
+  }
+}
+
+function closeOverlay(){document.getElementById('product-overlay').classList.remove('show');}
+function closeModal(e){if(e.target.id==='product-overlay') closeOverlay();}
+
+// ── LISTA ──
+function renderLista(){
+  const keys = Object.keys(cart);
+  const empty = document.getElementById('lista-empty');
+  const content = document.getElementById('lista-content');
+  const countEl = document.getElementById('lista-count');
+  countEl.textContent = keys.length+' producto'+(keys.length!==1?'s':'')+' guardado'+(keys.length!==1?'s':'');
+
+  if(keys.length===0){
+    empty.style.display='flex';
+    content.style.display='none';
+    return;
+  }
+  empty.style.display='none';
+  content.style.display='flex';
+
+  const container = document.getElementById('lista-items-container');
+  container.innerHTML = keys.map(k=>{
+    const {product:p,qty} = cart[k];
+    return `
+      <div class="lista-item">
+        <div class="lista-item-emoji">${p.emoji}</div>
+        <div class="lista-item-info">
+          <div class="lista-item-name">${p.name}</div>
+          <div class="lista-item-sub">${p.desc}</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('${k}',-1)">−</button>
+            <div class="qty-val" id="qty-${k}">${qty}</div>
+            <button class="qty-btn" onclick="changeQty('${k}',1)">+</button>
+            <div class="lista-item-price" style="margin-left:8px;">${fmt(p.price*qty)}</div>
+          </div>
+        </div>
+        <button class="remove-btn" onclick="removeItem('${k}')">✕</button>
+      </div>
+    `;
+  }).join('');
+  updateTotal();
+}
+
+function changeQty(id,delta){
+  if(!cart[id]) return;
+  cart[id].qty = Math.max(1, cart[id].qty+delta);
+  renderLista();
+}
+function removeItem(id){
+  delete cart[id];
+  updateBadge();
+  renderLista();
+}
+function updateTotal(){
+  let total = Object.values(cart).reduce((s,{product:p,qty})=>s+p.price*qty,0);
+  document.getElementById('lista-total').textContent = fmt(total);
+}
+function updateBadge(){
+  const n = Object.keys(cart).length;
+  const badge = document.getElementById('lista-badge');
+  badge.textContent = n;
+  badge.style.display = n>0?'flex':'none';
+}
+
+// ── MAPA ──
+const routeOrder = ['sofa','comoda','mesa','cojin'];
+let navStep = 0;
+function renderMapa(){
+  const cartKeys = Object.keys(cart);
+  const steps = routeOrder.filter(k=>cartKeys.includes(k));
+  const stepsEl = document.getElementById('route-steps-list');
+  if(steps.length===0){
+    stepsEl.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);font-size:14px;">Agrega productos a tu lista para ver la ruta</div>';
+    document.getElementById('next-stop-card').style.display='none';
+    return;
+  }
+  document.getElementById('next-stop-card').style.display='flex';
+  const first = products[steps[0]];
+  document.getElementById('next-stop-name').textContent = first.name;
+  document.getElementById('next-stop-loc').textContent = first.loc;
+
+  stepsEl.innerHTML = steps.map((k,i)=>{
+    const p = products[k];
+    const done = i < navStep;
+    return `
+      <div class="route-step">
+        <div class="step-num ${done?'done':''}">${done?'✓':(i+1)}</div>
+        <div class="step-info">
+          <div class="step-name" style="${done?'text-decoration:line-through;color:var(--gray4);':''}">${p.name}</div>
+          <div class="step-loc">${p.loc}</div>
+        </div>
+        <div class="step-emoji">${p.emoji}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function startNav(){
+  if(Object.keys(cart).length===0){showToast('⚠️ Agrega productos primero');return;}
+  navStep = Math.min(navStep+1, routeOrder.filter(k=>cart[k]).length);
+  const steps = routeOrder.filter(k=>cart[k]);
+  if(navStep >= steps.length){
+    showToast('🎉 ¡Has completado tu ruta!');
+    navStep=0;
+  } else {
+    const next = products[steps[navStep]];
+    showToast('📍 Dirigiéndote a '+next.name);
+  }
+  renderMapa();
+}
+
+// ── RETO ──
+function completeChallenge(id, pts, name){
+  if(completedChallenges[id]) return;
+  completedChallenges[id]=true;
+  retoPoints += pts;
+  retoProgress = Math.min(retoProgress+1,10);
+  document.getElementById(id+'-status').textContent='✅';
+  document.getElementById('reto-pts').textContent = retoPoints+' pts';
+  document.getElementById('reto-prog').textContent = retoProgress+' / 10';
+  document.getElementById('prog-fill').style.width = (retoProgress*10)+'%';
+  showToast('🎉 +'+pts+' pts — '+name);
+}
+function showReward(){
+  if(retoPoints>=200){showToast('🎁 ¡Descuento del 10% aplicado!');}
+  else{showToast('⚠️ Necesitas '+(200-retoPoints)+' pts más');}
+}
+
+// ── UTILS ──
+function fmt(n){return '$'+n.toLocaleString('es-CO');}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function selectAmbiente(el,name){
+  document.querySelectorAll('.ambiente-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  showToast('🏠 Explorando: '+name);
+}
+
+// init
+updateBadge();
+</script>
+</body>
+</html>
