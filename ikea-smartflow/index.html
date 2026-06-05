@@ -379,7 +379,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
     <div class="home-greeting"><h1>¡Hola!</h1><p>¿Qué estás buscando hoy?</p></div>
     <div class="searchbar">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Buscar productos o ambientes…"/>
+      <input type="text" id="searchInput" placeholder="Buscar productos o ambientes…" oninput="buscarProductos(this.value)"/>
     </div>
     <div class="sec-hd">Explora ambientes <span class="sec-link">Ver todos</span></div>
     <div class="amb-row">
@@ -779,6 +779,53 @@ function rmI(id) { delete cart[id]; updBadge(); renderLista(); }
 function updBadge() { const n = Object.keys(cart).filter(k=>cart[k]&&cart[k].qty>0).length; const b=document.getElementById('nbadge'); if(b){ b.textContent=n; b.style.display=n>0?'flex':'none'; } }
 function completeC(id, pts, n) { if(done[id])return; done[id]=true; rPts+=pts; rN=Math.min(rN+1,10); document.getElementById('cs'+id.slice(-1)).className='chs-box chs-done'; document.getElementById('cs'+id.slice(-1)).innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`; document.getElementById(id).classList.add('done'); document.getElementById('rpts').textContent=rPts+' pts'; document.getElementById('rprog').textContent=rN+' / 10'; document.getElementById('pfill').style.width=(rN*10)+'%'; toast('+'+pts+' pts'); }
 function claimR() { toast(rPts >= 200 ? '¡Descuento aplicado!' : 'Necesitas 200 pts'); }
+
+// ==========================================================
+// MÓDULO DE BÚSQUEDA REACTIVA
+// ==========================================================
+function buscarProductos(query) {
+  const contenedor = document.getElementById('home-prod-list');
+  if (!contenedor) return;
+
+  const q = query.toLowerCase().trim();
+
+  // Si se borra la búsqueda, restauramos la lista original completa
+  if (q === '') {
+    renderHomeProds();
+    return;
+  }
+
+  // Filtrar buscando coincidencias en nombre, descripción o ubicación
+  const filtrados = Object.values(P).filter(p => 
+    p.name.toLowerCase().includes(q) || 
+    p.desc.toLowerCase().includes(q) || 
+    p.loc.toLowerCase().includes(q)
+  );
+
+  // Mensaje de estado vacío si no hay coincidencias
+  if (filtrados.length === 0) {
+    contenedor.innerHTML = `
+      <div style="padding:30px 20px; text-align:center; color:var(--g4);">
+        <svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:var(--g3);fill:none;stroke-width:1.5;margin-bottom:10px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">No encontramos "${query}"</div>
+        <div style="font-size:13px;">Intenta con otras palabras clave o revisa la ortografía.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Renderizar tarjetas de los productos que sí coinciden
+  contenedor.innerHTML = filtrados.map(p => `
+    <div class="prod-card" onclick="openModal('${p.id}')">
+      <div class="prod-img-box">${imgOrSvg(p)}</div>
+      <div class="prod-inf">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-desc">${p.desc}</div>
+      </div>
+      <div class="prod-price">${fmt(p.price)}</div>
+      <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>`).join('');
+}
 </script>
 </body>
 </html>
