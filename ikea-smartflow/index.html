@@ -739,78 +739,120 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 <div class="toast" id="toast-el"></div>
 
 <script>
-// ════════════════════════════════════════════
-// DATOS DE PRODUCTOS
-// ════════════════════════════════════════════
-// img: ruta a la imagen del producto
-// Archivos sugeridos en carpeta images/:
-//   prod-soderhamn.jpg   → foto del sofá SÖDERHAMN
-//   prod-lack.jpg        → foto de la mesa LACK
-//   prod-hemnes.jpg      → foto de la cómoda HEMNES
-//   prod-fjadrar.jpg     → foto del cojín FJÄDRAR
-// Tamaño recomendado: 400×400px, fondo blanco o neutro
-// ════════════════════════════════════════════
-// 1. Ajuste de Coordenadas lógicas según el flujo del plano real de la imagen
-const P = {
-  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 54, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Nivel 3' },
-  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 175, mapY: 54, img: 'images/prod-hemnes.jpg', loc: 'Dormitorios · Nivel 3' },
-  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 185, mapY: 183, img: 'images/prod-lack.jpg', loc: 'Pasillo 21' },
-  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 45, mapY: 183, img: 'images/prod-fjadrar.jpg', loc: 'Pasillo 8' }
+// ============================================================================
+// VARIABLES DE ESTADO GLOBAL (Críticas para el funcionamiento de la SPA)
+// ============================================================================
+let cur = 'home';
+const ORDER = ['home', 'scanner', 'lista', 'mapa', 'reto'];
+let navStep = 0;
+let cart = {};
+let done = {};
+let rPts = 120;
+let rN = 3;
+let html5Qr = null;
+let qrActive = false;
+let qrStarting = false;
+let pendingQrId = null;
+
+const QR_MAP = {
+  "sofa": "sofa",
+  "comoda": "comoda",
+  "mesa": "mesa",
+  "cojin": "cojin"
 };
 
-// Punto de Entrada y Salida Fijos
+// ============================================================================
+// DATOS DE PRODUCTOS Y MAPEO DE COORDENADAS (Imagen Real IKEA)
+// ============================================================================
+const P = {
+  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 25, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 2', desc: 'Sofá de 3 plazas', size: '198x99x83 cm', color: 'Turquesa' },
+  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 70, mapY: 65, img: 'images/prod-hemnes.jpg', loc: 'Dormitorio · Sección 7', desc: 'Cómoda de 8 cajones', size: '160x96 cm', color: 'Blanco tinte' },
+  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 75, mapY: 25, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar básica', size: '55x55 cm', color: 'Negro' },
+  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 30, mapY: 65, img: 'images/prod-fjadrar.jpg', loc: 'Market · Sección 8', desc: 'Cojín interior plumas', size: '50x50 cm', color: 'Blanco' }
+};
+
+// Puntos fijos de control mapeados en el canvas SVG (0-100)
 const ENTRADA = { x: 15, y: 25 };
 const SALIDA = { x: 85, y: 105 };
 
-// ── SPLASH ──
-window.addEventListener('load',()=>{
-  renderHomeProds();renderDPList();
-  setTimeout(()=>{const s=document.getElementById('splash');s.classList.add('hide');setTimeout(()=>s.remove(),600);},1800);
+// -- SPLASH --
+window.addEventListener('load', () => {
+  renderHomeProds();
+  renderDPList();
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    if (s) {
+      s.classList.add('hide');
+      setTimeout(() => s.remove(), 600);
+    }
+  }, 1800);
   updBar('home');
 });
 
-// ── NAV ──
-function goTo(id){
-  if(id===cur)return;
-  const cs=document.getElementById('screen-'+cur),ns=document.getElementById('screen-'+id);
-  const goR=ORDER.indexOf(id)>=ORDER.indexOf(cur);
+// -- NAV (Navegación SPA fluida y protegida de errores) --
+function goTo(id) {
+  if (id === cur) return;
+  const cs = document.getElementById('screen-' + cur);
+  const ns = document.getElementById('screen-' + id);
+  if (!cs || !ns) return;
+
+  const goR = ORDER.indexOf(id) >= ORDER.indexOf(cur);
   cs.classList.remove('active');
-  ns.style.transform=goR?'translateX(100%)':'translateX(-100%)';
-  ns.style.transition='none';
+  ns.style.transform = goR ? 'translateX(100%)' : 'translateX(-100%)';
+  ns.style.transition = 'none';
   ns.classList.add('active');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    ns.style.transition='';ns.style.transform='translateX(0)';
-    cs.style.transform=goR?'translateX(-28%)':'translateX(28%)';
+  
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ns.style.transition = '';
+    ns.style.transform = 'translateX(0)';
+    cs.style.transform = goR ? 'translateX(-28%)' : 'translateX(28%)';
   }));
-  setTimeout(()=>{cs.classList.remove('active');cs.style.transform='';cs.style.transition='';},380);
-  document.getElementById('nav-'+cur).classList.remove('active');
-  document.getElementById('nav-'+id).classList.add('active');
-  cur=id;updBar(id);
-  if(id==='lista')renderLista();
-  if(id==='mapa')renderMapa();
-  if(id==='scanner')startScanner();
+  
+  setTimeout(() => {
+    cs.classList.remove('active');
+    cs.style.transform = '';
+    cs.style.transition = '';
+  }, 380);
+  
+  const oldNav = document.getElementById('nav-' + cur);
+  const newNav = document.getElementById('nav-' + id);
+  if (oldNav) oldNav.classList.remove('active');
+  if (newNav) newNav.classList.add('active');
+  
+  cur = id;
+  updBar(id);
+  
+  if (id === 'lista') renderLista();
+  if (id === 'mapa') renderMapa();
+  if (id === 'scanner') startScanner();
   else stopScanner();
 }
-function updBar(id){const w=100/5,idx=ORDER.indexOf(id),b=document.getElementById('nbar');b.style.left=`${w*idx}%`;b.style.width=`${w}%`;}
 
-// ── QR SCANNER — versión robusta ──
+function updBar(id) {
+  const w = 100 / 5;
+  const idx = ORDER.indexOf(id);
+  const b = document.getElementById('nbar');
+  if (b && idx !== -1) {
+    b.style.left = `${w * idx}%`;
+    b.style.width = `${w}%`;
+  }
+}
+
+// -- QR SCANNER --
 function startScanner() {
   if (qrActive || qrStarting) return;
   qrStarting = true;
   setQrStatus('', 'Iniciando cámara…');
 
   if (html5Qr) {
-    html5Qr.clear();
+    try { html5Qr.clear(); } catch(e) {}
   }
   
   html5Qr = new Html5Qrcode("qr-reader");
 
-  // Configuración de escaneo
   const config = {
-    fps: 15, // Un poco más de FPS para mayor fluidez
+    fps: 15,
     qrbox: (viewfinderWidth, viewfinderHeight) => {
-      // Definimos el área de escaneo EXACTA (190px como en tu CSS)
-      // Pero ajustada proporcionalmente al feed real
       const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
       const size = Math.floor(minEdge * 0.7); 
       return { width: size, height: size };
@@ -827,11 +869,8 @@ function startScanner() {
     qrActive = true;
     qrStarting = false;
     setQrStatus('on', 'Cámara activa — buscando QR…');
-    
-    // IMPORTANTE: No ocultes todo con CSS, deja que la librería trabaje
-    // y solo oculta los elementos visuales que sobran
     const uiFix = document.getElementById('qr-reader__dashboard');
-    if(uiFix) uiFix.style.display = "none";
+    if (uiFix) uiFix.style.display = "none";
   }).catch(err => {
     qrStarting = false;
     setQrStatus('err', 'Error de cámara');
@@ -839,86 +878,99 @@ function startScanner() {
   });
 }
 
-function hideLibraryUI(){
-  // Ocultar todos los hijos del reader que NO sean video
-  const reader=document.getElementById('qr-reader');
-  if(!reader)return;
-  Array.from(reader.children).forEach(child=>{
-    if(child.tagName!=='VIDEO'){
-      child.style.display='none';
-      child.style.visibility='hidden';
-    }
+function stopScanner() {
+  if (!html5Qr || !qrActive) return;
+  html5Qr.stop().then(() => {
+    try { html5Qr.clear(); } catch(e) {}
+    qrActive = false;
+    qrStarting = false;
+    setQrStatus('', '—');
+  }).catch(() => {
+    qrActive = false;
+    qrStarting = false;
   });
-  // Forzar que el video llene el contenedor
-  const vid=reader.querySelector('video');
-  if(vid){
-    vid.style.cssText='position:absolute!important;top:0!important;left:0!important;width:100%!important;height:100%!important;object-fit:cover!important;';
+}
+
+function onQrSuccess(text) {
+  const pid = QR_MAP[text.trim()];
+  if (!pid) { toast('QR no reconocido: ' + text.substring(0, 20)); return; }
+  if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
+  const wrap = document.getElementById('qr-wrap');
+  if (wrap) {
+    wrap.classList.remove('flash');
+    void wrap.offsetWidth;
+    wrap.classList.add('flash');
   }
-}
-
-function stopScanner(){
-  if(!html5Qr||!qrActive)return;
-  html5Qr.stop().then(()=>{
-    try{html5Qr.clear();}catch(e){}
-    qrActive=false;qrStarting=false;
-    setQrStatus('','—');
-  }).catch(()=>{qrActive=false;qrStarting=false;});
-}
-
-function onQrSuccess(text){
-  const pid=QR_MAP[text.trim()];
-  if(!pid){toast('QR no reconocido: '+text.substring(0,20));return;}
-  if(navigator.vibrate)navigator.vibrate([40,30,60]);
-  const wrap=document.getElementById('qr-wrap');
-  wrap.classList.remove('flash');void wrap.offsetWidth;wrap.classList.add('flash');
   showQrResult(pid);
 }
 
-function setQrStatus(cls,msg){
-  document.getElementById('qr-dot').className='qr-dot'+(cls?' '+cls:'');
-  document.getElementById('qr-txt').textContent=msg;
-}
-function showQrResult(id){
-  const p=P[id];if(!p)return;
-  pendingQrId=id;
-  const icon=document.getElementById('qrr-icon');
-  icon.innerHTML=`<img src="${p.img}" alt="${p.name}" onerror="this.parentNode.innerHTML='${p.svg.replace(/'/g,"\\'")}'"/>`;
-  document.getElementById('qrr-nm').textContent=p.name;
-  document.getElementById('qrr-pr').textContent=fmt(p.price);
-  const res=document.getElementById('qr-result');
-  res.classList.add('show');
-  setTimeout(()=>res.classList.remove('show'),5000);
-}
-function addFromQR(){
-  if(!pendingQrId)return;
-  document.getElementById('qr-result').classList.remove('show');
-  doAddProd(pendingQrId);pendingQrId=null;
+function setQrStatus(cls, msg) {
+  const dot = document.getElementById('qr-dot');
+  const txt = document.getElementById('qr-txt');
+  if (dot) dot.className = 'qr-dot' + (cls ? ' ' : '') + cls;
+  if (txt) txt.textContent = msg;
 }
 
-// ── DEMO SCAN ──
-function scanProd(id){if(cart[id]){toast(P[id].name+' ya está en tu lista');return;}doAddProd(id);}
-function doAddProd(id){const p=P[id];cart[id]={product:p,qty:1};updBadge();markDP(id);toast(p.name+' guardado');setTimeout(()=>openModal(id),350);}
-function markDP(id){
-  const el=document.getElementById('dp-'+id),db=document.getElementById('db-'+id);
-  if(el)el.classList.add('sc');
-  if(db){db.className='dp-act dp-chk';db.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;db.style.transform='scale(1.3)';setTimeout(()=>db.style.transform='',280);}
+function showQrResult(id) {
+  const p = P[id]; if (!p) return;
+  pendingQrId = id;
+  const icon = document.getElementById('qrr-icon');
+  if (icon) icon.innerHTML = `<img src="${p.img}" alt="${p.name}" onerror="this.remove()"/>`;
+  
+  const nm = document.getElementById('qrr-nm');
+  const pr = document.getElementById('qrr-pr');
+  if (nm) nm.textContent = p.name;
+  if (pr) pr.textContent = fmt(p.price);
+  
+  const res = document.getElementById('qr-result');
+  if (res) {
+    res.classList.add('show');
+    setTimeout(() => res.classList.remove('show'), 5000);
+  }
 }
 
-// ── RENDER ──
-function imgOrSvg(p,cls,size){
-  return `
-    <img 
-      src="${p.img}" 
-      alt="${p.name}"
-      loading="lazy"
-      style="width:100%;height:100%;object-fit:cover;display:block;"
-      onerror="this.remove()"
-    >
-  `;
+function addFromQR() {
+  if (!pendingQrId) return;
+  const res = document.getElementById('qr-result');
+  if (res) res.classList.remove('show');
+  doAddProd(pendingQrId);
+  pendingQrId = null;
 }
 
-function renderHomeProds(){
-  document.getElementById('home-prod-list').innerHTML=Object.values(P).map(p=>`
+function scanProd(id) {
+  if (cart[id]) { toast(P[id].name + ' ya está en tu lista'); return; }
+  doAddProd(id);
+}
+
+function doAddProd(id) {
+  const p = P[id];
+  cart[id] = { product: p, qty: 1 };
+  updBadge();
+  markDP(id);
+  toast(p.name + ' guardado');
+  setTimeout(() => openModal(id), 350);
+}
+
+function markDP(id) {
+  const el = document.getElementById('dp-' + id);
+  const db = document.getElementById('db-' + id);
+  if (el) el.classList.add('sc');
+  if (db) {
+    db.className = 'dp-act dp-chk';
+    db.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+    db.style.transform = 'scale(1.3)';
+    setTimeout(() => db.style.transform = '', 280);
+  }
+}
+
+function imgOrSvg(p) {
+  return `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.remove()">`;
+}
+
+function renderHomeProds() {
+  const el = document.getElementById('home-prod-list');
+  if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `
     <div class="prod-card" onclick="openModal('${p.id}')">
       <div class="prod-img-box">${imgOrSvg(p)}</div>
       <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
@@ -926,8 +978,11 @@ function renderHomeProds(){
       <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>`).join('');
 }
-function renderDPList(){
-  document.getElementById('dp-list').innerHTML=Object.values(P).map(p=>`
+
+function renderDPList() {
+  const el = document.getElementById('dp-list');
+  if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `
     <div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')">
       <div class="dp-icon">${imgOrSvg(p)}</div>
       <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
@@ -936,70 +991,105 @@ function renderDPList(){
     </div>`).join('');
 }
 
-// ── MODAL ──
-function openModal(id){
-  const p=P[id],inC=!!cart[id];
-  document.getElementById('mbody').innerHTML=`
+// -- MODAL --
+function openModal(id) {
+  const p = P[id]; if (!p) return;
+  const inC = !!cart[id];
+  const mbody = document.getElementById('mbody');
+  if (!mbody) return;
+  
+  mbody.innerHTML = `
     <div class="mtitle">${p.name}</div>
     <div class="msub">${p.desc}</div>
     <div class="mprev">
-      <img class="mprev-img" src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-      <div class="mprev-icon" style="display:none;">${p.svg}</div>
+      <img class="mprev-img" src="${p.img}" alt="${p.name}" onerror="this.remove()"/>
       <div class="mprev-info"><div class="mpn">${p.name}</div><div class="mpd">${p.desc}</div><div class="mpp">${fmt(p.price)}</div></div>
     </div>
     <div class="irow"><div class="il">Ubicación</div><div class="iv">${p.loc}</div></div>
-    <div class="irow"><div class="il">Medidas</div><div class="iv">${p.size}</div></div>
-    <div class="irow"><div class="il">Color</div><div class="iv">${p.color}</div></div>
+    <div class="irow"><div class="il">Medidas</div><div class="iv">${p.size || 'N/A'}</div></div>
+    <div class="irow"><div class="il">Color</div><div class="iv">${p.color || 'N/A'}</div></div>
     <div class="irow"><div class="il">Disponibilidad</div><div class="iv ok">En stock ✓</div></div>
     <div class="mbtns">
-      ${inC?'<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>'
-           :`<button class="btn-blue" onclick="addM('${id}')">Guardar en mi lista</button>`}
+      ${inC ? '<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>'
+           : `<button class="btn-blue" onclick="addM('${id}')">Guardar en mi lista</button>`}
       <button class="btn-outline" onclick="closeModal();goTo('mapa')">Ver en mapa →</button>
     </div>`;
-  document.getElementById('overlay').classList.add('show');
+  
+  const ov = document.getElementById('overlay');
+  if (ov) ov.classList.add('show');
 }
-function addM(id){cart[id]={product:P[id],qty:1};updBadge();toast(P[id].name+' agregado');closeModal();markDP(id);}
-function closeModal(){document.getElementById('overlay').classList.remove('show');}
-function maybeClose(e){if(e.target.id==='overlay')closeModal();}
 
-// ── LISTA ──
-function renderLista(){
-  const keys=Object.keys(cart);
-  document.getElementById('lcnt').textContent=keys.length+' producto'+(keys.length!==1?'s':'')+' guardado'+(keys.length!==1?'s':'');
-  if(!keys.length){document.getElementById('lempty').style.display='flex';document.getElementById('lcont').style.display='none';return;}
-  document.getElementById('lempty').style.display='none';document.getElementById('lcont').style.display='flex';
-  document.getElementById('litems').innerHTML=keys.map((k,i)=>{
-    const{product:p,qty}=cart[k];
-    return `<div class="l-item" style="animation-delay:${i*.05}s">
-      <div class="l-icon">${imgOrSvg(p)}</div>
-      <div class="l-inf"><div class="l-nm">${p.name}</div><div class="l-sub">${p.desc}</div>
-        <div class="qrow">
-          <button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          <div class="qv">${qty}</div>
-          <button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          <div class="l-pr">${fmt(p.price*qty)}</div>
+function addM(id) {
+  cart[id] = { product: P[id], qty: 1 };
+  updBadge();
+  toast(P[id].name + ' agregado');
+  closeModal();
+  markDP(id);
+}
+function closeModal() { const ov = document.getElementById('overlay'); if (ov) ov.classList.remove('show'); }
+function maybeClose(e) { if (e.target.id === 'overlay') closeModal(); }
+
+// -- MI LISTA --
+function renderLista() {
+  const keys = Object.keys(cart).filter(k => cart[k]);
+  const lcnt = document.getElementById('lcnt');
+  if (lcnt) lcnt.textContent = keys.length + ' producto' + (keys.length !== 1 ? 's' : '') + ' guardado' + (keys.length !== 1 ? 's' : '');
+  
+  const lempty = document.getElementById('lempty');
+  const lcont = document.getElementById('lcont');
+  
+  if (!keys.length) {
+    if (lempty) lempty.style.display = 'flex';
+    if (lcont) lcont.style.display = 'none';
+    return;
+  }
+  
+  if (lempty) lempty.style.display = 'none';
+  if (lcont) lcont.style.display = 'flex';
+  
+  const litems = document.getElementById('litems');
+  if (litems) {
+    litems.innerHTML = keys.map((k, i) => {
+      const { product: p, qty } = cart[k];
+      return `<div class="l-item" style="animation-delay:${i * .05}s">
+        <div class="l-icon">${imgOrSvg(p)}</div>
+        <div class="l-inf"><div class="l-nm">${p.name}</div><div class="l-sub">${p.desc}</div>
+          <div class="qrow">
+            <button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="qv">${qty}</div>
+            <button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="l-pr">${fmt(p.price * qty)}</div>
+          </div>
         </div>
-      </div>
-      <button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-    </div>`;
-  }).join('');
+        <button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>`;
+    }).join('');
+  }
   updTotal();
 }
-function cQ(id,d){if(!cart[id])return;cart[id].qty=Math.max(1,cart[id].qty+d);renderLista();}
-function rmI(id){delete cart[id];updBadge();renderLista();}
-function updTotal(){document.getElementById('ltotal').textContent=fmt(Object.values(cart).reduce((s,{product:p,qty})=>s+p.price*qty,0));}
-function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('nbadge');b.textContent=n;b.style.display=n>0?'flex':'none';}
 
-// ── MAPA ──
-/**
- * Algoritmo Greedy (Nearest Neighbor) para optimizar la ruta dinámicamente
- * Ordena los productos del carrito reduciendo la distancia total recorrida
- */
- function calcularRutaOptima() {
-  const entrada = { x: 35, y: 229 }; // Tu posición inicial original
+function cQ(id, d) { if (!cart[id]) return; cart[id].qty = Math.max(1, cart[id].qty + d); renderLista(); }
+function rmI(id) { delete cart[id]; updBadge(); renderLista(); }
+function updTotal() { 
+  const tot = document.getElementById('ltotal');
+  if (tot) tot.textContent = fmt(Object.values(cart).reduce((s, { product: p, qty }) => s + p.price * qty, 0)); 
+}
+function updBadge() {
+  const n = Object.keys(cart).filter(k => cart[k]).length;
+  const b = document.getElementById('nbadge');
+  if (b) {
+    b.textContent = n;
+    b.style.display = n > 0 ? 'flex' : 'none';
+  }
+}
+
+// ============================================================================
+// LÓGICA DEL MAPA DINÁMICO (Optimizado por Cercanía / Vecino Más Cercano)
+// ============================================================================
+function calcularRutaOptima() {
   let unvisited = Object.keys(cart).filter(k => cart[k]);
   let optimizada = [];
-  let posActual = entrada;
+  let posActual = ENTRADA;
 
   while (unvisited.length > 0) {
     let cercanoIdx = 0;
@@ -1017,67 +1107,158 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
   return optimizada;
 }
 
-
-/**
- * Renderiza el mapa SVG con soporte dinámico y validación de rutas vacías
- */
- function renderMapa() {
-  // Calculamos la ruta dinámica basándonos en el carrito actual
+function renderMapa() {
   const rutaDinamica = calcularRutaOptima();
+  const pathEl = document.getElementById('route-path');
+  const pinsContainer = document.getElementById('map-pins');
+  const instEl = document.getElementById('nb-inst');
+  const txtLoc = document.getElementById('mapa-loc-txt');
   
+  if (!pathEl || !pinsContainer || !instEl) return; // Salvaguarda anti-crash
+
+  if (txtLoc) txtLoc.textContent = "Ubicación en tienda activa";
+  pinsContainer.innerHTML = '';
+
   if (!rutaDinamica.length) {
-    document.getElementById('nb-inst').textContent = "Agrega productos a tu lista";
-    hideAllStops(); // Función original de tu archivo
+    pathEl.setAttribute('d', '');
+    instEl.textContent = "Agrega productos a tu lista";
+    const sub = document.getElementById('nb-sub');
+    if (sub) sub.textContent = "para ver la ruta óptima";
     return;
   }
 
-  // Dibujamos la línea de ruta en el SVG
-  const pts = [{x: 35, y: 220}, ...rutaDinamica.map(id => ({x: P[id].mapX, y: P[id].mapY}))];
-  document.getElementById('route-path').setAttribute('d', pts.map((p, i) => `${i===0?'M':'L'}${p.x},${p.y}`).join(' '));
-
-  // Actualizamos los pines (stop-0, stop-1...) según la ruta optimizada
-  rutaDinamica.forEach((id, i) => {
-    if (i > 3) return; // Tu SVG original solo tiene 4 paradas definidas
-    const p = P[id];
-    const done = i < navStep;
-    const active = i === navStep;
-
-    document.getElementById('stop-' + i).setAttribute('cx', p.mapX);
-    document.getElementById('stop-' + i).setAttribute('cy', p.mapY);
-    document.getElementById('stop-' + i).setAttribute('opacity', active ? '1' : '0.5');
-    document.getElementById('stop-txt-' + i).setAttribute('x', p.mapX);
-    document.getElementById('stop-txt-' + i).setAttribute('y', p.mapY + 4);
-    document.getElementById('stop-txt-' + i).setAttribute('opacity', '1');
-    document.getElementById('stop-txt-' + i).textContent = done ? '✓' : (i + 1);
+  // Trazar línea de camino SVG
+  let dParam = `M ${ENTRADA.x} ${ENTRADA.y}`;
+  rutaDinamica.forEach((id) => {
+    dParam += ` L ${P[id].mapX} ${P[id].mapY}`;
   });
 
-  // Actualizar el banner de instrucciones (nb-inst)
+  if (navStep >= rutaDinamica.length) {
+    dParam += ` L ${SALIDA.x} ${SALIDA.y}`;
+  }
+  pathEl.setAttribute('d', dParam);
+
+  // Renderizar pines dinámicamente en el mapa
+  rutaDinamica.forEach((id, i) => {
+    const p = P[id];
+    const isCurrent = i === navStep;
+    const isVisited = i < navStep;
+
+    let pinColor = '#FFDB00'; // Pendiente (Amarillo)
+    if (isCurrent) pinColor = '#0058A3'; // Siguiente (Azul)
+    if (isVisited) pinColor = '#C8C8C4'; // Recogido (Gris)
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
+    
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', p.mapX);
+    circle.setAttribute('cy', p.mapY);
+    circle.setAttribute('r', isCurrent ? '4' : '3');
+    circle.setAttribute('fill', pinColor);
+    circle.setAttribute('stroke', '#111110');
+    circle.setAttribute('stroke-width', '0.5');
+    
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', p.mapX);
+    text.setAttribute('y', p.mapY + 1.2);
+    text.setAttribute('font-size', '3.5');
+    text.setAttribute('font-family', 'sans-serif');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', isCurrent ? '#FFF' : '#111110');
+    text.textContent = isVisited ? '✓' : (i + 1);
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    pinsContainer.appendChild(g);
+  });
+
+  // Actualizar banners de texto instructivo superior
   if (navStep < rutaDinamica.length) {
     const actual = P[rutaDinamica[navStep]];
-    document.getElementById('nb-inst').textContent = "Recoger " + actual.name;
-    document.getElementById('nb-sub').textContent = actual.loc;
-    moveYou(navStep); // Mueve el punto "Tú" en el mapa
+    instEl.textContent = `Recoger: ${actual.name}`;
+    const sub = document.getElementById('nb-sub');
+    if (sub) sub.textContent = actual.loc;
+    
+    const distEl = document.getElementById('nb-dist');
+    if (distEl) distEl.textContent = `Paso ${navStep + 1} de ${rutaDinamica.length}`;
+  } else {
+    instEl.textContent = "¡Todos los productos recogidos! 🎉";
+    const sub = document.getElementById('nb-sub');
+    if (sub) sub.textContent = "Dirígete al área de cajas.";
+    const distEl = document.getElementById('nb-dist');
+    if (distEl) distEl.textContent = "FIN";
   }
 }
 
-// ── RETO ──
-function completeC(id,pts,name){
-  if(done[id])return;done[id]=true;rPts+=pts;rN=Math.min(rN+1,10);
-  const n=id.slice(-1),cs=document.getElementById('cs'+n);
-  cs.className='chs-box chs-done';cs.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  document.getElementById(id).classList.add('done');
-  document.getElementById('rpts').textContent=rPts+' pts';
-  document.getElementById('rprog').textContent=rN+' / 10';
-  document.getElementById('pfill').style.width=(rN*10)+'%';
-  if(navigator.vibrate)navigator.vibrate([30,20,60]);toast('+'+pts+' pts — '+name);
+function nextStep() {
+  const ruta = calcularRutaOptima();
+  if (!ruta.length) { toast('Tu lista está vacía'); return; }
+  if (navStep >= ruta.length) { toast('¡Ya llegaste a las cajas!'); return; }
+  
+  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+  navStep++;
+  renderMapa();
 }
-function claimR(){toast(rPts>=200?'¡10% de descuento aplicado!':'Necesitas '+(200-rPts)+' pts más');}
 
-// ── UTILS ──
-function fmt(n){return '$'+n.toLocaleString('es-CO');}
+function resetNav() {
+  navStep = 0;
+  renderMapa();
+  toast('Ruta reiniciada');
+}
+
+// -- RETO --
+function completeC(id, pts, name) {
+  if (done[id]) return;
+  done[id] = true;
+  rPts += pts;
+  rN = Math.min(rN + 1, 10);
+  
+  const n = id.slice(-1);
+  const cs = document.getElementById('cs' + n);
+  if (cs) {
+    cs.className = 'chs-box chs-done';
+    cs.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+  
+  const row = document.getElementById(id);
+  if (row) row.classList.add('done');
+  
+  const ptsEl = document.getElementById('rpts');
+  const progEl = document.getElementById('rprog');
+  const fillEl = document.getElementById('pfill');
+  
+  if (ptsEl) ptsEl.textContent = rPts + ' pts';
+  if (progEl) progEl.textContent = rN + ' / 10';
+  if (fillEl) fillEl.style.width = (rN * 10) + '%';
+  
+  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+  toast('+' + pts + ' pts — ' + name);
+}
+
+function claimR() {
+  toast(rPts >= 200 ? '¡10% de descuento aplicado!' : 'Necesitas ' + (200 - rPts) + ' pts más');
+}
+
+// -- UTILS --
+function fmt(n) { return '$' + n.toLocaleString('es-CO'); }
 let tt;
-function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600);}
-function selAmb(el,name){document.querySelectorAll('.amb-card').forEach(c=>c.classList.remove('on'));el.classList.add('on');toast(name);}
+function toast(msg) {
+  const t = document.getElementById('toast-el');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function selAmb(el, name) {
+  document.querySelectorAll('.amb-card').forEach(c => c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  toast(name);
+}
+
 updBadge();
 </script>
 </body>
