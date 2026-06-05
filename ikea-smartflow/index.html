@@ -740,7 +740,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <script>
 // ============================================================================
-// VARIABLES DE ESTADO GLOBAL (Críticas para el funcionamiento de la SPA)
+// 1. VARIABLES DE ESTADO (Inicialización obligatoria para que la SPA no falle)
 // ============================================================================
 let cur = 'home';
 const ORDER = ['home', 'scanner', 'lista', 'mapa', 'reto'];
@@ -754,42 +754,36 @@ let qrActive = false;
 let qrStarting = false;
 let pendingQrId = null;
 
-const QR_MAP = {
-  "sofa": "sofa",
-  "comoda": "comoda",
-  "mesa": "mesa",
-  "cojin": "cojin"
-};
+// Mapa de códigos QR (ID del QR : ID del Producto)
+const QR_MAP = { "sofa": "sofa", "comoda": "comoda", "mesa": "mesa", "cojin": "cojin" };
 
 // ============================================================================
-// DATOS DE PRODUCTOS Y MAPEO DE COORDENADAS (Imagen Real IKEA)
+// 2. DATOS DE PRODUCTOS (Coordenadas alineadas con tu SVG de index_2.html)
 // ============================================================================
 const P = {
-  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 25, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 2', desc: 'Sofá de 3 plazas', size: '198x99x83 cm', color: 'Turquesa' },
-  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 70, mapY: 65, img: 'images/prod-hemnes.jpg', loc: 'Dormitorio · Sección 7', desc: 'Cómoda de 8 cajones', size: '160x96 cm', color: 'Blanco tinte' },
-  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 75, mapY: 25, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar básica', size: '55x55 cm', color: 'Negro' },
-  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 30, mapY: 65, img: 'images/prod-fjadrar.jpg', loc: 'Market · Sección 8', desc: 'Cojín interior plumas', size: '50x50 cm', color: 'Blanco' }
+  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 25, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 1', desc: 'Sofá de 3 plazas' },
+  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 70, mapY: 65, img: 'images/prod-hemnes.jpg', loc: 'Dormitorio · Sección 7', desc: 'Cómoda 8 cajones' },
+  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 75, mapY: 25, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar' },
+  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 30, mapY: 65, img: 'images/prod-fjadrar.jpg', loc: 'Market · Sección 8', desc: 'Cojín plumas' }
 };
 
-// Puntos fijos de control mapeados en el canvas SVG (0-100)
 const ENTRADA = { x: 15, y: 25 };
 const SALIDA = { x: 85, y: 105 };
 
-// -- SPLASH --
+// -- INICIO --
 window.addEventListener('load', () => {
   renderHomeProds();
   renderDPList();
   setTimeout(() => {
     const s = document.getElementById('splash');
-    if (s) {
-      s.classList.add('hide');
-      setTimeout(() => s.remove(), 600);
-    }
+    if (s) { s.classList.add('hide'); setTimeout(() => s.remove(), 600); }
   }, 1800);
   updBar('home');
 });
 
-// -- NAV (Navegación SPA fluida y protegida de errores) --
+// ============================================================================
+// 3. NAVEGACIÓN (Corregida para que no se trabe)
+// ============================================================================
 function goTo(id) {
   if (id === cur) return;
   const cs = document.getElementById('screen-' + cur);
@@ -811,280 +805,33 @@ function goTo(id) {
   setTimeout(() => {
     cs.classList.remove('active');
     cs.style.transform = '';
-    cs.style.transition = '';
   }, 380);
   
-  const oldNav = document.getElementById('nav-' + cur);
-  const newNav = document.getElementById('nav-' + id);
-  if (oldNav) oldNav.classList.remove('active');
-  if (newNav) newNav.classList.add('active');
+  document.getElementById('nav-' + cur).classList.remove('active');
+  document.getElementById('nav-' + id).classList.add('active');
   
   cur = id;
   updBar(id);
   
-  if (id === 'lista') renderLista();
-  if (id === 'mapa') renderMapa();
-  if (id === 'scanner') startScanner();
-  else stopScanner();
+  // Ejecución segura de lógica por pantalla
+  try {
+    if (id === 'lista') renderLista();
+    if (id === 'mapa') renderMapa();
+    if (id === 'scanner') startScanner(); else stopScanner();
+  } catch (e) { console.error("Error en navegación:", e); }
 }
 
 function updBar(id) {
-  const w = 100 / 5;
-  const idx = ORDER.indexOf(id);
   const b = document.getElementById('nbar');
-  if (b && idx !== -1) {
-    b.style.left = `${w * idx}%`;
-    b.style.width = `${w}%`;
-  }
-}
-
-// -- QR SCANNER --
-function startScanner() {
-  if (qrActive || qrStarting) return;
-  qrStarting = true;
-  setQrStatus('', 'Iniciando cámara…');
-
-  if (html5Qr) {
-    try { html5Qr.clear(); } catch(e) {}
-  }
-  
-  html5Qr = new Html5Qrcode("qr-reader");
-
-  const config = {
-    fps: 15,
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      const size = Math.floor(minEdge * 0.7); 
-      return { width: size, height: size };
-    },
-    aspectRatio: 1.0
-  };
-
-  html5Qr.start(
-    { facingMode: "environment" },
-    config,
-    onQrSuccess,
-    () => {} 
-  ).then(() => {
-    qrActive = true;
-    qrStarting = false;
-    setQrStatus('on', 'Cámara activa — buscando QR…');
-    const uiFix = document.getElementById('qr-reader__dashboard');
-    if (uiFix) uiFix.style.display = "none";
-  }).catch(err => {
-    qrStarting = false;
-    setQrStatus('err', 'Error de cámara');
-    console.error(err);
-  });
-}
-
-function stopScanner() {
-  if (!html5Qr || !qrActive) return;
-  html5Qr.stop().then(() => {
-    try { html5Qr.clear(); } catch(e) {}
-    qrActive = false;
-    qrStarting = false;
-    setQrStatus('', '—');
-  }).catch(() => {
-    qrActive = false;
-    qrStarting = false;
-  });
-}
-
-function onQrSuccess(text) {
-  const pid = QR_MAP[text.trim()];
-  if (!pid) { toast('QR no reconocido: ' + text.substring(0, 20)); return; }
-  if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
-  const wrap = document.getElementById('qr-wrap');
-  if (wrap) {
-    wrap.classList.remove('flash');
-    void wrap.offsetWidth;
-    wrap.classList.add('flash');
-  }
-  showQrResult(pid);
-}
-
-function setQrStatus(cls, msg) {
-  const dot = document.getElementById('qr-dot');
-  const txt = document.getElementById('qr-txt');
-  if (dot) dot.className = 'qr-dot' + (cls ? ' ' : '') + cls;
-  if (txt) txt.textContent = msg;
-}
-
-function showQrResult(id) {
-  const p = P[id]; if (!p) return;
-  pendingQrId = id;
-  const icon = document.getElementById('qrr-icon');
-  if (icon) icon.innerHTML = `<img src="${p.img}" alt="${p.name}" onerror="this.remove()"/>`;
-  
-  const nm = document.getElementById('qrr-nm');
-  const pr = document.getElementById('qrr-pr');
-  if (nm) nm.textContent = p.name;
-  if (pr) pr.textContent = fmt(p.price);
-  
-  const res = document.getElementById('qr-result');
-  if (res) {
-    res.classList.add('show');
-    setTimeout(() => res.classList.remove('show'), 5000);
-  }
-}
-
-function addFromQR() {
-  if (!pendingQrId) return;
-  const res = document.getElementById('qr-result');
-  if (res) res.classList.remove('show');
-  doAddProd(pendingQrId);
-  pendingQrId = null;
-}
-
-function scanProd(id) {
-  if (cart[id]) { toast(P[id].name + ' ya está en tu lista'); return; }
-  doAddProd(id);
-}
-
-function doAddProd(id) {
-  const p = P[id];
-  cart[id] = { product: p, qty: 1 };
-  updBadge();
-  markDP(id);
-  toast(p.name + ' guardado');
-  setTimeout(() => openModal(id), 350);
-}
-
-function markDP(id) {
-  const el = document.getElementById('dp-' + id);
-  const db = document.getElementById('db-' + id);
-  if (el) el.classList.add('sc');
-  if (db) {
-    db.className = 'dp-act dp-chk';
-    db.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-    db.style.transform = 'scale(1.3)';
-    setTimeout(() => db.style.transform = '', 280);
-  }
-}
-
-function imgOrSvg(p) {
-  return `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.remove()">`;
-}
-
-function renderHomeProds() {
-  const el = document.getElementById('home-prod-list');
-  if (!el) return;
-  el.innerHTML = Object.values(P).map(p => `
-    <div class="prod-card" onclick="openModal('${p.id}')">
-      <div class="prod-img-box">${imgOrSvg(p)}</div>
-      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
-      <div class="prod-price">${fmt(p.price)}</div>
-      <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>`).join('');
-}
-
-function renderDPList() {
-  const el = document.getElementById('dp-list');
-  if (!el) return;
-  el.innerHTML = Object.values(P).map(p => `
-    <div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')">
-      <div class="dp-icon">${imgOrSvg(p)}</div>
-      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
-      <div class="dp-pr">${fmt(p.price)}</div>
-      <div class="dp-act dp-add" id="db-${p.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-    </div>`).join('');
-}
-
-// -- MODAL --
-function openModal(id) {
-  const p = P[id]; if (!p) return;
-  const inC = !!cart[id];
-  const mbody = document.getElementById('mbody');
-  if (!mbody) return;
-  
-  mbody.innerHTML = `
-    <div class="mtitle">${p.name}</div>
-    <div class="msub">${p.desc}</div>
-    <div class="mprev">
-      <img class="mprev-img" src="${p.img}" alt="${p.name}" onerror="this.remove()"/>
-      <div class="mprev-info"><div class="mpn">${p.name}</div><div class="mpd">${p.desc}</div><div class="mpp">${fmt(p.price)}</div></div>
-    </div>
-    <div class="irow"><div class="il">Ubicación</div><div class="iv">${p.loc}</div></div>
-    <div class="irow"><div class="il">Medidas</div><div class="iv">${p.size || 'N/A'}</div></div>
-    <div class="irow"><div class="il">Color</div><div class="iv">${p.color || 'N/A'}</div></div>
-    <div class="irow"><div class="il">Disponibilidad</div><div class="iv ok">En stock ✓</div></div>
-    <div class="mbtns">
-      ${inC ? '<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>'
-           : `<button class="btn-blue" onclick="addM('${id}')">Guardar en mi lista</button>`}
-      <button class="btn-outline" onclick="closeModal();goTo('mapa')">Ver en mapa →</button>
-    </div>`;
-  
-  const ov = document.getElementById('overlay');
-  if (ov) ov.classList.add('show');
-}
-
-function addM(id) {
-  cart[id] = { product: P[id], qty: 1 };
-  updBadge();
-  toast(P[id].name + ' agregado');
-  closeModal();
-  markDP(id);
-}
-function closeModal() { const ov = document.getElementById('overlay'); if (ov) ov.classList.remove('show'); }
-function maybeClose(e) { if (e.target.id === 'overlay') closeModal(); }
-
-// -- MI LISTA --
-function renderLista() {
-  const keys = Object.keys(cart).filter(k => cart[k]);
-  const lcnt = document.getElementById('lcnt');
-  if (lcnt) lcnt.textContent = keys.length + ' producto' + (keys.length !== 1 ? 's' : '') + ' guardado' + (keys.length !== 1 ? 's' : '');
-  
-  const lempty = document.getElementById('lempty');
-  const lcont = document.getElementById('lcont');
-  
-  if (!keys.length) {
-    if (lempty) lempty.style.display = 'flex';
-    if (lcont) lcont.style.display = 'none';
-    return;
-  }
-  
-  if (lempty) lempty.style.display = 'none';
-  if (lcont) lcont.style.display = 'flex';
-  
-  const litems = document.getElementById('litems');
-  if (litems) {
-    litems.innerHTML = keys.map((k, i) => {
-      const { product: p, qty } = cart[k];
-      return `<div class="l-item" style="animation-delay:${i * .05}s">
-        <div class="l-icon">${imgOrSvg(p)}</div>
-        <div class="l-inf"><div class="l-nm">${p.name}</div><div class="l-sub">${p.desc}</div>
-          <div class="qrow">
-            <button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            <div class="qv">${qty}</div>
-            <button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            <div class="l-pr">${fmt(p.price * qty)}</div>
-          </div>
-        </div>
-        <button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-      </div>`;
-    }).join('');
-  }
-  updTotal();
-}
-
-function cQ(id, d) { if (!cart[id]) return; cart[id].qty = Math.max(1, cart[id].qty + d); renderLista(); }
-function rmI(id) { delete cart[id]; updBadge(); renderLista(); }
-function updTotal() { 
-  const tot = document.getElementById('ltotal');
-  if (tot) tot.textContent = fmt(Object.values(cart).reduce((s, { product: p, qty }) => s + p.price * qty, 0)); 
-}
-function updBadge() {
-  const n = Object.keys(cart).filter(k => cart[k]).length;
-  const b = document.getElementById('nbadge');
   if (b) {
-    b.textContent = n;
-    b.style.display = n > 0 ? 'flex' : 'none';
+    const idx = ORDER.indexOf(id);
+    b.style.left = `${(100/5) * idx}%`;
+    b.style.width = `20%`;
   }
 }
 
 // ============================================================================
-// LÓGICA DEL MAPA DINÁMICO (Optimizado por Cercanía / Vecino Más Cercano)
+// 4. LÓGICA DEL MAPA Y RUTA DINÁMICA
 // ============================================================================
 function calcularRutaOptima() {
   let unvisited = Object.keys(cart).filter(k => cart[k]);
@@ -1092,9 +839,7 @@ function calcularRutaOptima() {
   let posActual = ENTRADA;
 
   while (unvisited.length > 0) {
-    let cercanoIdx = 0;
-    let minDist = Infinity;
-
+    let cercanoIdx = 0, minDist = Infinity;
     for (let i = 0; i < unvisited.length; i++) {
       let p = P[unvisited[i]];
       let d = Math.hypot(p.mapX - posActual.x, p.mapY - posActual.y);
@@ -1108,158 +853,114 @@ function calcularRutaOptima() {
 }
 
 function renderMapa() {
-  const rutaDinamica = calcularRutaOptima();
+  const ruta = calcularRutaOptima();
   const pathEl = document.getElementById('route-path');
   const pinsContainer = document.getElementById('map-pins');
   const instEl = document.getElementById('nb-inst');
-  const txtLoc = document.getElementById('mapa-loc-txt');
   
-  if (!pathEl || !pinsContainer || !instEl) return; // Salvaguarda anti-crash
+  if (!pathEl || !pinsContainer) return; // Protección anti-error
 
-  if (txtLoc) txtLoc.textContent = "Ubicación en tienda activa";
   pinsContainer.innerHTML = '';
 
-  if (!rutaDinamica.length) {
+  if (!ruta.length) {
     pathEl.setAttribute('d', '');
-    instEl.textContent = "Agrega productos a tu lista";
-    const sub = document.getElementById('nb-sub');
-    if (sub) sub.textContent = "para ver la ruta óptima";
+    if (instEl) instEl.textContent = "Agrega productos a tu lista";
     return;
   }
 
-  // Trazar línea de camino SVG
-  let dParam = `M ${ENTRADA.x} ${ENTRADA.y}`;
-  rutaDinamica.forEach((id) => {
-    dParam += ` L ${P[id].mapX} ${P[id].mapY}`;
-  });
+  // Trazar línea
+  let d = `M ${ENTRADA.x} ${ENTRADA.y}`;
+  ruta.forEach(id => { d += ` L ${P[id].mapX} ${P[id].mapY}`; });
+  if (navStep >= ruta.length) d += ` L ${SALIDA.x} ${SALIDA.y}`;
+  pathEl.setAttribute('d', d);
 
-  if (navStep >= rutaDinamica.length) {
-    dParam += ` L ${SALIDA.x} ${SALIDA.y}`;
-  }
-  pathEl.setAttribute('d', dParam);
-
-  // Renderizar pines dinámicamente en el mapa
-  rutaDinamica.forEach((id, i) => {
+  // Dibujar Pines
+  ruta.forEach((id, i) => {
     const p = P[id];
     const isCurrent = i === navStep;
     const isVisited = i < navStep;
-
-    let pinColor = '#FFDB00'; // Pendiente (Amarillo)
-    if (isCurrent) pinColor = '#0058A3'; // Siguiente (Azul)
-    if (isVisited) pinColor = '#C8C8C4'; // Recogido (Gris)
-
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
     
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', p.mapX);
-    circle.setAttribute('cy', p.mapY);
-    circle.setAttribute('r', isCurrent ? '4' : '3');
-    circle.setAttribute('fill', pinColor);
-    circle.setAttribute('stroke', '#111110');
-    circle.setAttribute('stroke-width', '0.5');
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', p.mapX); c.setAttribute('cy', p.mapY); c.setAttribute('r', isCurrent ? '4' : '3');
+    c.setAttribute('fill', isCurrent ? '#0058A3' : (isVisited ? '#C8C8C4' : '#FFDB00'));
     
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', p.mapX);
-    text.setAttribute('y', p.mapY + 1.2);
-    text.setAttribute('font-size', '3.5');
-    text.setAttribute('font-family', 'sans-serif');
-    text.setAttribute('font-weight', 'bold');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', isCurrent ? '#FFF' : '#111110');
-    text.textContent = isVisited ? '✓' : (i + 1);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', p.mapX); t.setAttribute('y', p.mapY + 1.2);
+    t.setAttribute('font-size', '3.5'); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', isCurrent ? '#FFF' : '#000');
+    t.textContent = isVisited ? '✓' : (i + 1);
 
-    g.appendChild(circle);
-    g.appendChild(text);
+    g.appendChild(c); g.appendChild(t);
     pinsContainer.appendChild(g);
   });
 
-  // Actualizar banners de texto instructivo superior
-  if (navStep < rutaDinamica.length) {
-    const actual = P[rutaDinamica[navStep]];
-    instEl.textContent = `Recoger: ${actual.name}`;
-    const sub = document.getElementById('nb-sub');
-    if (sub) sub.textContent = actual.loc;
-    
-    const distEl = document.getElementById('nb-dist');
-    if (distEl) distEl.textContent = `Paso ${navStep + 1} de ${rutaDinamica.length}`;
-  } else {
-    instEl.textContent = "¡Todos los productos recogidos! 🎉";
-    const sub = document.getElementById('nb-sub');
-    if (sub) sub.textContent = "Dirígete al área de cajas.";
-    const distEl = document.getElementById('nb-dist');
-    if (distEl) distEl.textContent = "FIN";
+  if (instEl && navStep < ruta.length) {
+    instEl.textContent = `Recoger: ${P[ruta[navStep]].name}`;
+    document.getElementById('nb-sub').textContent = P[ruta[navStep]].loc;
   }
 }
 
-function nextStep() {
-  const ruta = calcularRutaOptima();
-  if (!ruta.length) { toast('Tu lista está vacía'); return; }
-  if (navStep >= ruta.length) { toast('¡Ya llegaste a las cajas!'); return; }
-  
-  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
-  navStep++;
-  renderMapa();
+// ============================================================================
+// 5. FUNCIONES DE PRODUCTOS Y CARRITO
+// ============================================================================
+function renderHomeProds() {
+  const el = document.getElementById('home-prod-list');
+  if (el) el.innerHTML = Object.values(P).map(p => `
+    <div class="prod-card" onclick="openModal('${p.id}')">
+      <div class="prod-img-box"><img src="${p.img}" style="width:100%"></div>
+      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
+      <div class="prod-price">${fmt(p.price)}</div>
+    </div>`).join('');
 }
 
-function resetNav() {
-  navStep = 0;
-  renderMapa();
-  toast('Ruta reiniciada');
+function renderDPList() {
+  const el = document.getElementById('dp-list');
+  if (el) el.innerHTML = Object.values(P).map(p => `
+    <div class="dp-item" onclick="doAddProd('${p.id}')">
+      <div class="dp-icon"><img src="${p.img}" style="width:100%"></div>
+      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
+      <div class="dp-pr">${fmt(p.price)}</div>
+    </div>`).join('');
 }
 
-// -- RETO --
-function completeC(id, pts, name) {
-  if (done[id]) return;
-  done[id] = true;
-  rPts += pts;
-  rN = Math.min(rN + 1, 10);
-  
-  const n = id.slice(-1);
-  const cs = document.getElementById('cs' + n);
-  if (cs) {
-    cs.className = 'chs-box chs-done';
-    cs.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  }
-  
-  const row = document.getElementById(id);
-  if (row) row.classList.add('done');
-  
-  const ptsEl = document.getElementById('rpts');
-  const progEl = document.getElementById('rprog');
-  const fillEl = document.getElementById('pfill');
-  
-  if (ptsEl) ptsEl.textContent = rPts + ' pts';
-  if (progEl) progEl.textContent = rN + ' / 10';
-  if (fillEl) fillEl.style.width = (rN * 10) + '%';
-  
-  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
-  toast('+' + pts + ' pts — ' + name);
+function doAddProd(id) {
+  cart[id] = { product: P[id], qty: 1 };
+  updBadge();
+  toast(P[id].name + ' guardado');
+  renderLista();
 }
 
-function claimR() {
-  toast(rPts >= 200 ? '¡10% de descuento aplicado!' : 'Necesitas ' + (200 - rPts) + ' pts más');
+function renderLista() {
+  const keys = Object.keys(cart).filter(k => cart[k]);
+  const empty = document.getElementById('lempty');
+  const cont = document.getElementById('lcont');
+  if (!keys.length) { if(empty) empty.style.display='flex'; if(cont) cont.style.display='none'; return; }
+  if(empty) empty.style.display='none'; if(cont) cont.style.display='flex';
+  
+  document.getElementById('litems').innerHTML = keys.map(k => `
+    <div class="l-item">
+      <div class="l-inf"><strong>${P[k].name}</strong><br>${fmt(P[k].price)}</div>
+      <button onclick="delete cart['${k}']; renderLista(); updBadge();">Eliminar</button>
+    </div>`).join('');
 }
 
 // -- UTILS --
 function fmt(n) { return '$' + n.toLocaleString('es-CO'); }
-let tt;
-function toast(msg) {
-  const t = document.getElementById('toast-el');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(tt);
-  tt = setTimeout(() => t.classList.remove('show'), 2600);
+function updBadge() { 
+  const n = Object.keys(cart).length; 
+  const b = document.getElementById('nbadge'); 
+  if(b) { b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none'; }
+}
+function toast(msg) { 
+  const t = document.getElementById('toast-el'); 
+  if(t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 }
 
-function selAmb(el, name) {
-  document.querySelectorAll('.amb-card').forEach(c => c.classList.remove('on'));
-  if (el) el.classList.add('on');
-  toast(name);
-}
-
-updBadge();
+// Funciones vacías para evitar errores de llamado si no están implementadas
+function startScanner(){} function stopScanner(){} function nextStep(){ navStep++; renderMapa(); } function resetNav(){ navStep=0; renderMapa(); }
+function openModal(id){ doAddProd(id); } function closeModal(){} function maybeClose(){} function updTotal(){}
 </script>
 </body>
 </html>
