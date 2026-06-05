@@ -526,8 +526,6 @@ let qrActive = false;
 let qrStarting = false;
 let pendingQrId = null;
 
-const QR_MAP = { "sofa": "sofa", "comoda": "comoda", "mesa": "mesa", "cojin": "cojin" };
-
 const P = {
   sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 75, mapY: 55, seccion: 2, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 2', desc: 'Sofá de 3 plazas' },
   mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 175, mapY: 85, seccion: 4, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar básica' },
@@ -722,11 +720,38 @@ function stopScanner() {
   if (!html5Qr || !qrActive) return;
   html5Qr.stop().then(() => { qrActive = false; setQrStatus('', '—'); }).catch(() => { qrActive = false; });
 }
+// ==========================================================
+// MÓDULO DE LECTURA QR OPTIMIZADO
+// ==========================================================
 function onQrSuccess(text) {
-  const pid = QR_MAP[text.trim()];
-  if (!pid) return;
+  // 1. Normalizar el texto escaneado eliminando espacios y pasándolo a minúsculas
+  const scan = text.trim().toLowerCase();
+  
+  // 2. Buscar dinámicamente si el código contiene el ID de alguno de nuestros productos
+  let pid = null;
+  for (const key in P) {
+    if (scan.includes(key)) {
+      pid = key;
+      break;
+    }
+  }
+
+  // 3. Manejo de error si el QR escaneado no es de nuestra tienda
+  if (!pid) { 
+    toast('QR no válido: ' + text.substring(0, 15)); 
+    return; 
+  }
+  
+  // 4. Feedback físico y visual de éxito
   if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
-  const w = document.getElementById('qr-wrap'); if(w) { w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
+  const wrap = document.getElementById('qr-wrap'); 
+  if (wrap) { 
+    wrap.classList.remove('flash'); 
+    void wrap.offsetWidth; // Forzar reinicio de la animación CSS
+    wrap.classList.add('flash'); 
+  }
+  
+  // 5. Mostrar el popup del producto
   showQrResult(pid);
 }
 function setQrStatus(c, m) { const d=document.getElementById('qr-dot'); const t=document.getElementById('qr-txt'); if(d) d.className='qr-dot '+c; if(t) t.textContent=m; }
