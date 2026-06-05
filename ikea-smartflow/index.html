@@ -655,26 +655,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       <div class="nb-info"><div class="nb-dist" id="nb-dist">—</div><div class="nb-inst" id="nb-inst">Agrega productos a tu lista</div><div class="nb-sub" id="nb-sub">para ver la ruta</div></div>
     </div>
     <div class="map-container">
-      <svg id="map-svg" viewBox="0 0 100 120" style="width:100%; height:auto; background:#f7f7f3; border-radius:12px; box-shadow:inset 0 0 10px rgba(0,0,0,0.05);">
-        <rect x="5" y="5" width="90" height="35" rx="6" fill="#0058a3" fill-opacity="0.03" stroke="#0058a3" stroke-dasharray="2 2" stroke-opacity="0.2"/>
-        <text x="10" y="15" font-size="4" font-family="sans-serif" weight="bold" fill="#0058a3" opacity="0.6">1. SHOWROOM (Muebles y Camas)</text>
-      
-        <rect x="5" y="45" width="90" height="40" rx="6" fill="#ffdb00" fill-opacity="0.03" stroke="#ffdb00" stroke-dasharray="2 2" stroke-opacity="0.3"/>
-        <text x="10" y="55" font-size="4" font-family="sans-serif" weight="bold" fill="#6e6e6a" opacity="0.8">2. MARKET (Decoración y Textiles)</text>
-      
-        <rect x="5" y="90" width="90" height="25" rx="6" fill="#111110" fill-opacity="0.02" stroke="#111110" stroke-dasharray="2 2" stroke-opacity="0.1"/>
-        <text x="10" y="100" font-size="4" font-family="sans-serif" weight="bold" fill="#111110" opacity="0.5">3. AUTOSERVICIO Y CAJAS</text>
-      
-        <path d="M 15 25 L 85 25 L 85 65 L 15 65 L 15 105 L 85 105" fill="none" stroke="#e8e8e4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      
-        <circle cx="15" cy="25" r="2.5" fill="#0058a3" />
-        <text x="12" y="21" font-size="3.5" font-family="sans-serif" fill="#0058a3" font-weight="bold">Inicio</text>
+      <svg id="map-svg" viewBox="0 0 220 220" style="width:100%; height:auto; background:#0f2c59; border-radius:14px; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);">
+  
+        <path d="M 20 70 L 130 70 M 130 20 L 130 110 L 190 110 M 90 110 L 90 190 M 130 140 L 165 140 L 165 190" fill="none" stroke="#1a3d6c" stroke-width="2" />
         
-        <circle cx="85" cy="105" r="2.5" fill="#e8c800" />
-        <text x="80" y="112" font-size="3.5" font-family="sans-serif" fill="#111110" font-weight="bold">Cajas</text>
-      
-        <path id="route-path" d="" fill="none" stroke="#0058A3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 3" style="animation: dash 30s linear infinite;"/>
+        <text x="25" y="35" font-size="7" font-family="sans-serif" font-weight="bold" fill="#ffffff" opacity="0.25">3F: EXHIBICIÓN DE MUEBLES</text>
         
+        <path id="ikea-labyrinth" d="M 25 55 L 75 55 L 75 25 L 115 25 L 115 85 L 175 85 L 175 145 L 115 145 L 115 115 L 75 115 L 75 175 L 25 175 L 25 200 L 195 200" fill="none" stroke="#1d447a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        
+        <path id="route-path" d="" fill="none" stroke="#FFDB00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 5" style="animation: dash 20s linear infinite; stroke-shadow: 0 2px 4px rgba(0,0,0,0.5);"/>
+        
+        <circle cx="25" cy="55" r="4.5" fill="#22C55E" />
+        <text x="25" y="57.5" font-size="6" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">E</text>
+        
+        <circle cx="195" cy="200" r="4.5" fill="#EF4444" />
+        <text x="195" y="202.5" font-size="6" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">C</text>
+      
         <g id="map-pins"></g>
       </svg>
     </div>
@@ -740,227 +736,204 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <script>
 // ============================================================================
-// 1. VARIABLES DE ESTADO (Inicialización obligatoria para que la SPA no falle)
-// ============================================================================
-let cur = 'home';
-const ORDER = ['home', 'scanner', 'lista', 'mapa', 'reto'];
-let navStep = 0;
-let cart = {};
-let done = {};
-let rPts = 120;
-let rN = 3;
-let html5Qr = null;
-let qrActive = false;
-let qrStarting = false;
-let pendingQrId = null;
-
-// Mapa de códigos QR (ID del QR : ID del Producto)
-const QR_MAP = { "sofa": "sofa", "comoda": "comoda", "mesa": "mesa", "cojin": "cojin" };
-
-// ============================================================================
-// 2. DATOS DE PRODUCTOS (Coordenadas alineadas con tu SVG de index_2.html)
+// DATOS DE PRODUCTOS CON COORDENADAS FIJAS EN EL LABERINTO REAL (1 al 8)
 // ============================================================================
 const P = {
-  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 25, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 1', desc: 'Sofá de 3 plazas' },
-  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 70, mapY: 65, img: 'images/prod-hemnes.jpg', loc: 'Dormitorio · Sección 7', desc: 'Cómoda 8 cajones' },
-  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 75, mapY: 25, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar' },
-  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 30, mapY: 65, img: 'images/prod-fjadrar.jpg', loc: 'Market · Sección 8', desc: 'Cojín plumas' }
+  sofa: { 
+    id: 'sofa', 
+    name: 'SÖDERHAMN', 
+    price: 2199900, 
+    mapX: 75, mapY: 55, // Ubicado en Sección 2: Sala
+    seccion: 2,
+    img: 'images/prod-soderhamn.jpg', 
+    loc: 'Sala · Sección 2' 
+  },
+  mesa: { 
+    id: 'mesa', 
+    name: 'LACK', 
+    price: 79900, 
+    mapX: 175, mapY: 85, // Ubicado en Sección 4: Oficina y escritorios
+    seccion: 4,
+    img: 'images/prod-lack.jpg', 
+    loc: 'Oficina · Sección 4' 
+  },
+  comoda: { 
+    id: 'comoda', 
+    name: 'HEMNES', 
+    price: 1299900, 
+    mapX: 115, mapY: 115, // Ubicado en Sección 7: Dormitorio
+    seccion: 7,
+    img: 'images/prod-hemnes.jpg', 
+    loc: 'Dormitorio · Sección 7' 
+  },
+  cojin: { 
+    id: 'cojin', 
+    name: 'FJÄDRAR', 
+    price: 49900, 
+    mapX: 75, mapY: 175, // Ubicado en Sección 8: Clósets y armarios
+    seccion: 8,
+    img: 'images/prod-fjadrar.jpg', 
+    loc: 'Clósets · Sección 8' 
+  }
 };
 
-const ENTRADA = { x: 15, y: 25 };
-const SALIDA = { x: 85, y: 105 };
+// Puntos de control del laberinto del plano (Segmentos del pasillo de la tienda)
+const NODOS_MAPA = [
+  { x: 25, y: 55 },   // [0] Entrada / Sección 1
+  { x: 75, y: 55 },   // [1] Sección 2: Sala
+  { x: 75, y: 25 },   // [2] Vuelta hacia Estanterías
+  { x: 115, y: 25 },  // [3] Sección 3: Estanterías TV
+  { x: 115, y: 85 },  // [4] Bajada a Oficina
+  { x: 175, y: 85 },  // [5] Sección 4: Oficina / Escritorios
+  { x: 175, y: 145 }, // [6] Sección 5: Cocina
+  { x: 115, y: 145 }, // [7] Sección 6: Comedor
+  { x: 115, y: 115 }, // [8] Sección 7: Dormitorio
+  { x: 75, y: 115 },  // [9] Pasillo conector a Clósets
+  { x: 75, y: 175 },  // [10] Sección 8: Clósets y armarios
+  { x: 25, y: 175 },  // [11] Salida de Clósets / Atajo
+  { x: 25, y: 200 },  // [12] Pasillo final de Cajas
+  { x: 195, y: 200 }  // [13] Cajas / Salida final
+];
 
-// -- INICIO --
-window.addEventListener('load', () => {
-  renderHomeProds();
-  renderDPList();
-  setTimeout(() => {
-    const s = document.getElementById('splash');
-    if (s) { s.classList.add('hide'); setTimeout(() => s.remove(), 600); }
-  }, 1800);
-  updBar('home');
-});
-
-// ============================================================================
-// 3. NAVEGACIÓN (Corregida para que no se trabe)
-// ============================================================================
-function goTo(id) {
-  if (id === cur) return;
-  const cs = document.getElementById('screen-' + cur);
-  const ns = document.getElementById('screen-' + id);
-  if (!cs || !ns) return;
-
-  const goR = ORDER.indexOf(id) >= ORDER.indexOf(cur);
-  cs.classList.remove('active');
-  ns.style.transform = goR ? 'translateX(100%)' : 'translateX(-100%)';
-  ns.style.transition = 'none';
-  ns.classList.add('active');
-  
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    ns.style.transition = '';
-    ns.style.transform = 'translateX(0)';
-    cs.style.transform = goR ? 'translateX(-28%)' : 'translateX(28%)';
-  }));
-  
-  setTimeout(() => {
-    cs.classList.remove('active');
-    cs.style.transform = '';
-  }, 380);
-  
-  document.getElementById('nav-' + cur).classList.remove('active');
-  document.getElementById('nav-' + id).classList.add('active');
-  
-  cur = id;
-  updBar(id);
-  
-  // Ejecución segura de lógica por pantalla
-  try {
-    if (id === 'lista') renderLista();
-    if (id === 'mapa') renderMapa();
-    if (id === 'scanner') startScanner(); else stopScanner();
-  } catch (e) { console.error("Error en navegación:", e); }
-}
-
-function updBar(id) {
-  const b = document.getElementById('nbar');
-  if (b) {
-    const idx = ORDER.indexOf(id);
-    b.style.left = `${(100/5) * idx}%`;
-    b.style.width = `20%`;
-  }
-}
-
-// ============================================================================
-// 4. LÓGICA DEL MAPA Y RUTA DINÁMICA
-// ============================================================================
+/**
+ * Ordena los productos del carrito basándose estrictamente en el orden 
+ * de flujo natural de la tienda (Secuencial del pasillo 1 al 8)
+ */
 function calcularRutaOptima() {
-  let unvisited = Object.keys(cart).filter(k => cart[k]);
-  let optimizada = [];
-  let posActual = ENTRADA;
-
-  while (unvisited.length > 0) {
-    let cercanoIdx = 0, minDist = Infinity;
-    for (let i = 0; i < unvisited.length; i++) {
-      let p = P[unvisited[i]];
-      let d = Math.hypot(p.mapX - posActual.x, p.mapY - posActual.y);
-      if (d < minDist) { minDist = d; cercanoIdx = i; }
-    }
-    let clave = unvisited.splice(cercanoIdx, 1)[0];
-    optimizada.push(clave);
-    posActual = { x: P[clave].mapX, y: P[clave].mapY };
-  }
-  return optimizada;
+  return Object.keys(cart)
+    .filter(k => cart[k])
+    .sort((a, b) => P[a].seccion - P[b].seccion);
 }
 
+/**
+ * Renderiza el mapa replicando la ruta por pasillos reales
+ */
 function renderMapa() {
-  const ruta = calcularRutaOptima();
+  const rutaDinamica = calcularRutaOptima();
   const pathEl = document.getElementById('route-path');
   const pinsContainer = document.getElementById('map-pins');
   const instEl = document.getElementById('nb-inst');
+  const subEl = document.getElementById('nb-sub');
+  const distEl = document.getElementById('nb-dist');
   
-  if (!pathEl || !pinsContainer) return; // Protección anti-error
+  if (!pathEl || !pinsContainer) return;
 
   pinsContainer.innerHTML = '';
 
-  if (!ruta.length) {
+  if (!rutaDinamica.length) {
     pathEl.setAttribute('d', '');
     if (instEl) instEl.textContent = "Agrega productos a tu lista";
+    if (subEl) subEl.textContent = "para trazar tu camino en la tienda";
+    if (distEl) distEl.textContent = "VACÍO";
     return;
   }
 
-  // Trazar línea
-  let d = `M ${ENTRADA.x} ${ENTRADA.y}`;
-  ruta.forEach(id => { d += ` L ${P[id].mapX} ${P[id].mapY}`; });
-  if (navStep >= ruta.length) d += ` L ${SALIDA.x} ${SALIDA.y}`;
-  pathEl.setAttribute('d', d);
+  // Ajustar paso de navegación seguro
+  if (navStep > rutaDinamica.length) navStep = rutaDinamica.length;
 
-  // Dibujar Pines
-  ruta.forEach((id, i) => {
+  // 1. CONSTRUIR EL TRAZO SEGUIDOR DE PASILLOS
+  // Buscamos cuál es el producto más lejano en la ruta que el usuario debe recoger
+  let seccionMaxima = 1;
+  rutaDinamica.forEach((id, index) => {
+    // Si no se ha recogido o es el actual, extendemos el camino hasta este punto
+    if (P[id].seccion > seccionMaxima) {
+      seccionMaxima = P[id].seccion;
+    }
+  });
+  
+  // Si ya recogió todo, el camino debe llegar hasta las Cajas (último nodo)
+  if (navStep >= rutaDinamica.length) {
+    seccionMaxima = 10; // Fuerza recorrer todo el laberinto hasta el final
+  }
+
+  // Dibujamos el Path dinámico uniendo los nodos fijos de los pasillos necesarios
+  let dParam = "M 25 55";
+  
+  // Mapeo adaptativo: según la sección máxima que necesitemos visitar, añadimos los codos del pasillo
+  if (seccionMaxima >= 2) dParam += " L 75 55";
+  if (seccionMaxima >= 3) dParam += " L 75 25 L 115 25";
+  if (seccionMaxima >= 4) dParam += " L 115 85 L 175 85";
+  if (seccionMaxima >= 5) dParam += " L 175 145";
+  if (seccionMaxima >= 6) dParam += " L 115 145";
+  if (seccionMaxima >= 7) dParam += " L 115 115";
+  if (seccionMaxima >= 8) dParam += " L 75 115 L 75 175";
+  if (seccionMaxima >= 10) dParam += " L 25 175 L 25 200 L 195 200";
+
+  pathEl.setAttribute('d', dParam);
+
+  // 2. RENDERIZAR LOS PINES EN SU POSICIÓN FÍSICA INMUTABLE
+  rutaDinamica.forEach((id, i) => {
     const p = P[id];
     const isCurrent = i === navStep;
     const isVisited = i < navStep;
+
+    // Color corporativo IKEA basado en estado
+    let fillPin = '#FFDB00'; // Amarillo para pendientes
+    let strokePin = '#0f2c59';
+    let textColor = '#000000';
+
+    if (isCurrent) {
+      fillPin = '#0058A3'; // Azul IKEA para el objetivo actual
+      strokePin = '#FFFFFF';
+      textColor = '#FFFFFF';
+    } else if (isVisited) {
+      fillPin = '#1d447a'; // Integrado al fondo si ya se visitó
+      strokePin = '#0f2c59';
+      textColor = '#6E6E6A';
+    }
+
+    // Contenedor del grupo pin
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
     
-    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    c.setAttribute('cx', p.mapX); c.setAttribute('cy', p.mapY); c.setAttribute('r', isCurrent ? '4' : '3');
-    c.setAttribute('fill', isCurrent ? '#0058A3' : (isVisited ? '#C8C8C4' : '#FFDB00'));
-    
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('x', p.mapX); t.setAttribute('y', p.mapY + 1.2);
-    t.setAttribute('font-size', '3.5'); t.setAttribute('text-anchor', 'middle');
-    t.setAttribute('fill', isCurrent ? '#FFF' : '#000');
-    t.textContent = isVisited ? '✓' : (i + 1);
+    // Círculo exterior decorativo para el objetivo actual
+    if (isCurrent) {
+      const pulseCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pulseCircle.setAttribute('cx', p.mapX);
+      pulseCircle.setAttribute('cy', p.mapY);
+      pulseCircle.setAttribute('r', '8');
+      pulseCircle.setAttribute('fill', 'none');
+      pulseCircle.setAttribute('stroke', '#0058A3');
+      pulseCircle.setAttribute('stroke-width', '1');
+      pulseCircle.setAttribute('opacity', '0.6');
+      g.appendChild(pulseCircle);
+    }
 
-    g.appendChild(c); g.appendChild(t);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', p.mapX);
+    circle.setAttribute('cy', p.mapY);
+    circle.setAttribute('r', isCurrent ? '5.5' : '4.5');
+    circle.setAttribute('fill', fillPin);
+    circle.setAttribute('stroke', strokePin);
+    circle.setAttribute('stroke-width', '1');
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', p.mapX);
+    text.setAttribute('y', p.mapY + 2);
+    text.setAttribute('font-size', '5.5');
+    text.setAttribute('font-family', 'sans-serif');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', textColor);
+    text.textContent = isVisited ? '✓' : (i + 1);
+
+    g.appendChild(circle);
+    g.appendChild(text);
     pinsContainer.appendChild(g);
   });
 
-  if (instEl && navStep < ruta.length) {
-    instEl.textContent = `Recoger: ${P[ruta[navStep]].name}`;
-    document.getElementById('nb-sub').textContent = P[ruta[navStep]].loc;
+  // 3. ACTUALIZAR BANNER TEXTUAL DE INSTRUCCIONES
+  if (navStep < rutaDinamica.length) {
+    const actual = P[rutaDinamica[navStep]];
+    if (instEl) instEl.textContent = `Recoger: ${actual.name}`;
+    if (subEl) subEl.textContent = actual.loc;
+    if (distEl) distEl.textContent = `Paso ${navStep + 1} de ${rutaDinamica.length}`;
+  } else {
+    if (instEl) instEl.textContent = "¡Todos los productos recogidos! 🎉";
+    if (subEl) subEl.textContent = "Dirígete a la zona de cajas y salida.";
+    if (distEl) distEl.textContent = "FIN";
   }
 }
-
-// ============================================================================
-// 5. FUNCIONES DE PRODUCTOS Y CARRITO
-// ============================================================================
-function renderHomeProds() {
-  const el = document.getElementById('home-prod-list');
-  if (el) el.innerHTML = Object.values(P).map(p => `
-    <div class="prod-card" onclick="openModal('${p.id}')">
-      <div class="prod-img-box"><img src="${p.img}" style="width:100%"></div>
-      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
-      <div class="prod-price">${fmt(p.price)}</div>
-    </div>`).join('');
-}
-
-function renderDPList() {
-  const el = document.getElementById('dp-list');
-  if (el) el.innerHTML = Object.values(P).map(p => `
-    <div class="dp-item" onclick="doAddProd('${p.id}')">
-      <div class="dp-icon"><img src="${p.img}" style="width:100%"></div>
-      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
-      <div class="dp-pr">${fmt(p.price)}</div>
-    </div>`).join('');
-}
-
-function doAddProd(id) {
-  cart[id] = { product: P[id], qty: 1 };
-  updBadge();
-  toast(P[id].name + ' guardado');
-  renderLista();
-}
-
-function renderLista() {
-  const keys = Object.keys(cart).filter(k => cart[k]);
-  const empty = document.getElementById('lempty');
-  const cont = document.getElementById('lcont');
-  if (!keys.length) { if(empty) empty.style.display='flex'; if(cont) cont.style.display='none'; return; }
-  if(empty) empty.style.display='none'; if(cont) cont.style.display='flex';
-  
-  document.getElementById('litems').innerHTML = keys.map(k => `
-    <div class="l-item">
-      <div class="l-inf"><strong>${P[k].name}</strong><br>${fmt(P[k].price)}</div>
-      <button onclick="delete cart['${k}']; renderLista(); updBadge();">Eliminar</button>
-    </div>`).join('');
-}
-
-// -- UTILS --
-function fmt(n) { return '$' + n.toLocaleString('es-CO'); }
-function updBadge() { 
-  const n = Object.keys(cart).length; 
-  const b = document.getElementById('nbadge'); 
-  if(b) { b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none'; }
-}
-function toast(msg) { 
-  const t = document.getElementById('toast-el'); 
-  if(t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-}
-
-// Funciones vacías para evitar errores de llamado si no están implementadas
-function startScanner(){} function stopScanner(){} function nextStep(){ navStep++; renderMapa(); } function resetNav(){ navStep=0; renderMapa(); }
-function openModal(id){ doAddProd(id); } function closeModal(){} function maybeClose(){} function updTotal(){}
 </script>
 </body>
 </html>
