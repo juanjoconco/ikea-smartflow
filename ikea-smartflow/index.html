@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>IKEA SmartFlow</title>
 <link rel="manifest" href="manifest.json"/>
-<!-- QR library via jsdelivr (más estable que unpkg en producción) -->
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -66,7 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .btn-outline:active{transform:scale(.97);background:rgba(0,88,163,.05);}
 
 /* ════════════════════════════════
-   INICIO — nuevo diseño con imágenes
+   INICIO
 ════════════════════════════════ */
 .home-topbar{
   background:var(--white);
@@ -75,10 +74,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
   border-bottom:1px solid var(--g2);
   position:sticky;top:0;z-index:10;
 }
-/* ── LOGO IKEA real ──
-   Ponemos la imagen del logo en vez del texto.
-   Archivo: images/ikea-logo.png (súbelo a tu repo en esa carpeta)
-   Si no tienes logo aún, se muestra el badge de texto como fallback. */
 .ikea-logo-img{
   height:28px;
   width:auto;
@@ -90,99 +85,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 }
 .home-notif{width:36px;height:36px;border-radius:50%;background:var(--g1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
 .home-notif svg{width:18px;height:18px;stroke:var(--g5);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-
-/* Greeting */
 .home-greeting{padding:20px 18px 14px;}
 .home-greeting h1{font-size:24px;font-weight:800;color:var(--text);}
 .home-greeting p{font-size:14px;color:var(--g4);margin-top:2px;}
-
-/* Search */
 .searchbar{margin:0 18px 18px;background:var(--white);border-radius:24px;display:flex;align-items:center;gap:10px;padding:12px 16px;box-shadow:var(--sh);}
 .searchbar svg{width:17px;height:17px;stroke:var(--g4);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 .searchbar input{border:none;outline:none;font-size:14px;color:var(--text);flex:1;background:transparent;font-family:inherit;}
-
-/* Section headers */
 .sec-hd{font-size:16px;font-weight:800;color:var(--text);padding:4px 18px 12px;display:flex;align-items:center;justify-content:space-between;}
 .sec-link{font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;}
 
-/* ── Ambientes con imagen real ──
-   Cards horizontales con foto de fondo + label encima */
 .amb-row{
-  display:flex;
-  gap:10px;
-  padding:0 18px 4px;
-
-  overflow-x:auto;
-  overflow-y:visible;
-
-  scrollbar-width:none;
-
-  min-height:170px;
-
-  align-items:flex-start;
+  display:flex;gap:10px;padding:0 18px 4px;overflow-x:auto;overflow-y:visible;scrollbar-width:none;min-height:170px;align-items:flex-start;
 }
 .amb-row::-webkit-scrollbar{display:none;}
 .amb-card{
-  flex:0 0 160px;
-
-  width:160px;
-  height:160px;
-
-  border-radius:16px;
-
-  position:relative;
-  overflow:hidden;
-
-  cursor:pointer;
-
-  transition:transform .2s, box-shadow .2s;
-
-  box-shadow:var(--sh);
+  flex:0 0 160px;width:160px;height:160px;border-radius:16px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s, box-shadow .2s;box-shadow:var(--sh);
 }
 .amb-card:active{transform:scale(.97);}
 .amb-card.on{outline:2.5px solid var(--blue);outline-offset:-2px;}
-/* La imagen de fondo — se pone inline desde JS */
 .amb-card-img{
-  position:absolute;
-  top:0;
-  left:0;
-
-  width:100%;
-  height:100%;
-
-  object-fit:cover;
-
-  display:block;
-
-  background:var(--g2);
+  position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;background:var(--g2);
 }
-/* Gradient overlay para que el texto se lea */
 .amb-card::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.65) 0%,rgba(0,0,0,.1) 55%,transparent 100%);
+  content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65) 0%,rgba(0,0,0,.1) 55%,transparent 100%);
 }
 .amb-card-label{
-  position:absolute;bottom:10px;left:10px;right:10px;
-  font-size:13px;font-weight:700;color:#fff;z-index:1;
-  text-shadow:0 1px 4px rgba(0,0,0,.5);
+  position:absolute;bottom:10px;left:10px;right:10px;font-size:13px;font-weight:700;color:#fff;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.5);
 }
 
-/* ── Banner inspiración con imagen ──
-   Archivo: images/banner-inspiracion.jpg */
 .inspo-banner{
-  margin:16px 18px 0;border-radius:var(--r);overflow:hidden;
-  position:relative;height:180px;cursor:pointer;
-  box-shadow:0 4px 18px rgba(0,0,0,.15);
-  transition:transform .2s;
+  margin:16px 18px 0;border-radius:var(--r);overflow:hidden;position:relative;height:180px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.15);transition:transform .2s;
 }
 .inspo-banner:active{transform:scale(.98);}
 .inspo-banner-img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  background:var(--g2);
+  width:100%;height:100%;object-fit:cover;display:block;background:var(--g2);
 }
 .inspo-banner-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.2) 60%,transparent 100%);
+  position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.2) 60%,transparent 100%);
 }
 .inspo-banner-text{
   position:absolute;bottom:18px;left:18px;right:18px;color:#fff;
@@ -190,17 +129,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .inspo-banner-text h3{font-size:20px;font-weight:800;line-height:1.25;text-shadow:0 1px 6px rgba(0,0,0,.4);}
 .inspo-banner-text p{font-size:13px;opacity:.85;margin-top:6px;}
 
-/* ── Productos con imagen ── */
 .prod-list{display:flex;flex-direction:column;gap:8px;padding:0 18px;}
 .prod-card{background:var(--white);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .prod-card:active{transform:scale(.98);box-shadow:none;}
-/* Imagen del producto — cuadrado 56px */
 .prod-img-box{
-  width:56px;height:56px;border-radius:var(--rs);
-  overflow:hidden;flex-shrink:0;background:var(--g1);
+  width:56px;height:56px;border-radius:var(--rs);overflow:hidden;flex-shrink:0;background:var(--g1);
 }
 .prod-img-box img{width:100%;height:100%;object-fit:cover;display:block;}
-/* Fallback SVG si no hay imagen */
 .prod-img-box svg{width:32px;height:32px;margin:12px;}
 .prod-inf{flex:1;min-width:0;}
 .prod-name{font-size:14px;font-weight:800;}
@@ -208,7 +143,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .prod-price{font-size:14px;font-weight:800;color:var(--blue);flex-shrink:0;}
 .prod-chev svg{width:16px;height:16px;stroke:var(--g3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
-/* QR FAB */
 .qr-fab{margin:16px 18px 0;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);padding:15px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 36px);box-shadow:0 4px 16px rgba(0,88,163,.3);transition:transform .12s,filter .12s;}
 .qr-fab:active{transform:scale(.97);filter:brightness(.9);}
 .qr-fab svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -222,47 +156,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .xbtn{width:32px;height:32px;border-radius:50%;border:none;background:var(--g2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;}
 .xbtn:active{background:var(--g3);transform:scale(.9);}
 .xbtn svg{width:14px;height:14px;stroke:var(--g5);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
-
-/* QR Camera wrapper */
-.qr-wrap{
-  margin:14px 18px 0;
-  border-radius:var(--r);
-  overflow:hidden;
-  background:#111;
-  position:relative;
-  height:260px;
-}
-/* Video del escáner — ocupa todo el wrapper */
+.qr-wrap{margin:14px 18px 0;border-radius:var(--r);overflow:hidden;background:#111;position:relative;height:260px;}
 #qr-reader{width:100%;height:100%;position:relative;overflow:hidden;}
-#qr-reader video {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  min-width: 100% !important;
-  min-height: 100% !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: cover !important;
-}
-#qr-reader canvas {
-  display: none !important; /* El canvas de procesamiento no debe verse, pero debe existir */
-}
-/* Ocultar TODO el UI nativo de html5-qrcode */
+#qr-reader video {position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; min-width: 100% !important; min-height: 100% !important; width: auto !important; height: auto !important; object-fit: cover !important;}
+#qr-reader canvas {display: none !important;}
 #qr-reader>*:not(video){display:none!important;}
-/* Nuestro overlay encima del video */
-.qr-overlay{
-  position:absolute;inset:0;
-  pointer-events:none;
-  display:flex;align-items:center;justify-content:center;
-  z-index:5;
-}
-/* Oscurecer área fuera del frame */
+.qr-overlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;z-index:5;}
 .qr-mask-top{position:absolute;top:0;left:0;right:0;height:calc(50% - 95px);background:rgba(0,0,0,.45);}
 .qr-mask-bot{position:absolute;bottom:0;left:0;right:0;height:calc(50% - 95px);background:rgba(0,0,0,.45);}
 .qr-mask-left{position:absolute;top:calc(50% - 95px);left:0;width:calc(50% - 95px);height:190px;background:rgba(0,0,0,.45);}
 .qr-mask-right{position:absolute;top:calc(50% - 95px);right:0;width:calc(50% - 95px);height:190px;background:rgba(0,0,0,.45);}
-/* Frame amarillo */
 .qr-frame{width:190px;height:190px;position:relative;}
 .qr-corner{position:absolute;width:28px;height:28px;border-color:var(--yellow);border-style:solid;}
 .qc-tl{top:0;left:0;border-width:3.5px 0 0 3.5px;border-radius:3px 0 0 3px;}
@@ -271,10 +174,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .qc-br{bottom:0;right:0;border-width:0 3.5px 3.5px 0;border-radius:0 3px 3px 0;}
 .qr-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent);animation:qrscan 2s ease-in-out infinite;}
 @keyframes qrscan{0%,100%{top:0;opacity:.9}50%{top:calc(100% - 2px);opacity:.7}}
-/* Flash al escanear */
 .qr-wrap.flash{animation:qrflash .45s ease;}
 @keyframes qrflash{0%{filter:brightness(1)}30%{filter:brightness(2.5)}100%{filter:brightness(1)}}
-
 .qr-hint{padding:10px 18px 0;text-align:center;font-size:13px;color:var(--g4);line-height:1.5;}
 .qr-status{margin:10px 18px 0;background:var(--white);border-radius:var(--rs);padding:11px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);}
 .qr-dot{width:8px;height:8px;border-radius:50%;background:var(--g3);flex-shrink:0;transition:background .3s;}
@@ -302,7 +203,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .dp-chk{background:var(--blue);}
 .dp-chk svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 
-/* QR RESULT POPUP */
 .qr-result{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--white);border-radius:var(--r);padding:14px 16px;min-width:280px;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18);display:flex;align-items:center;gap:12px;opacity:0;transition:opacity .3s,transform .3s;z-index:400;pointer-events:none;}
 .qr-result.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
 .qrr-icon{width:42px;height:42px;border-radius:var(--rs);background:var(--g1);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
@@ -435,16 +335,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .mhdl{width:34px;height:4px;background:var(--g3);border-radius:2px;margin:10px auto 16px;}
 .mtitle{font-size:19px;font-weight:900;margin-bottom:3px;}
 .msub{font-size:12px;color:var(--g4);margin-bottom:16px;}
-/* Imagen grande en el modal */
 .mprev{background:var(--g1);border-radius:var(--r);overflow:hidden;margin-bottom:16px;display:flex;flex-direction:column;}
 .mprev-img{width:100%;height:180px;object-fit:cover;display:block;background:var(--g2);}
 .mprev-info{padding:14px 16px;}
 .mpn{font-size:17px;font-weight:900;}
 .mpd{font-size:12px;color:var(--g4);margin-top:3px;}
 .mpp{font-size:20px;font-weight:900;color:var(--blue);margin-top:6px;}
-/* Fallback si no hay imagen */
-.mprev-icon{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:var(--g1);}
-.mprev-icon svg{width:56px;height:56px;}
 .irow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--g2);}
 .irow:last-child{border-bottom:none;}
 .il{font-size:13px;color:var(--g4);}
@@ -453,18 +349,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .mbtns{display:flex;flex-direction:column;gap:9px;margin-top:18px;}
 
 /* TOAST */
-.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(14,14,14,.93);color:#fff;padding:11px 20px;border-radius:28px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap;z-index:500;}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(14,14,14,.93);color:#fff;padding:11px 20px;border-radius:28px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap;z-index:500;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
-  <!-- ════════════════════════════════════════
-       LOGO EN SPLASH
-       Cambia "images/ikea-logo.png" por tu archivo
-  ════════════════════════════════════════ -->
   <div class="spl-logo">
     <img src="images/ikea-logo.png" alt="IKEA" style="height:32px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
     <div style="display:none;font-size:26px;font-weight:900;letter-spacing:1.5px;color:#0058A3;">IKEA</div>
@@ -476,178 +367,87 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 <div id="app">
  <div class="screens">
 
-  <!-- ══════════════════════════════
-       INICIO
-  ══════════════════════════════ -->
   <div class="screen active" id="screen-home">
-
-    <!-- Top bar con logo real -->
     <div class="home-topbar">
-      <!-- ════════════════════════════════════════
-           LOGO IKEA REAL
-           Archivo: images/ikea-logo.png
-           Tamaño recomendado: 120×40px aprox, fondo transparente
-      ════════════════════════════════════════ -->
       <img src="images/ikea-logo.png" alt="IKEA SmartFlow" class="ikea-logo-img"
            onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'"/>
       <div class="ikea-badge-fallback" id="logo-fallback" style="display:none;">IKEA</div>
-
       <button class="home-notif" onclick="toast('Sin notificaciones nuevas')">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       </button>
     </div>
-
-    <!-- Saludo -->
-    <div class="home-greeting">
-      <h1>¡Hola!</h1>
-      <p>¿Qué estás buscando hoy?</p>
-    </div>
-
-    <!-- Buscador -->
+    <div class="home-greeting"><h1>¡Hola!</h1><p>¿Qué estás buscando hoy?</p></div>
     <div class="searchbar">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" placeholder="Buscar productos o ambientes…"/>
     </div>
-
-    <!-- Ambientes -->
     <div class="sec-hd">Explora ambientes <span class="sec-link">Ver todos</span></div>
     <div class="amb-row">
-      <!-- ════════════════════════════════════════
-           IMÁGENES DE AMBIENTES
-           Carpeta: images/
-           Archivos sugeridos:
-             amb-salas.jpg       → foto de sala de estar IKEA
-             amb-dormitorios.jpg → foto de dormitorio IKEA
-             amb-cocinas.jpg     → foto de cocina IKEA
-             amb-oficina.jpg     → foto de oficina IKEA
-             amb-banos.jpg       → foto de baño IKEA
-           Tamaño recomendado: 300×300px, jpg o webp
-      ════════════════════════════════════════ -->
       <div class="amb-card on" onclick="selAmb(this,'Salas')">
-        <img class="amb-card-img" src="images/amb-salas.jpg" alt="Salas"
-             onerror="this.style.background='#C8E0F4'"/>
+        <img class="amb-card-img" src="images/amb-salas.jpg" alt="Salas" onerror="this.style.opacity='0';this.parentNode.style.background='#C8E0F4'"/>
         <div class="amb-card-label">Salas</div>
       </div>
       <div class="amb-card" onclick="selAmb(this,'Dormitorios')">
-        <img class="amb-card-img" src="images/amb-dormitorios.jpg" alt="Dormitorios"
-             onerror="this.style.background='#F5E6C8'"/>
+        <img class="amb-card-img" src="images/amb-dormitorios.jpg" alt="Dormitorios" onerror="this.style.opacity='0';this.parentNode.style.background='#F5E6C8'"/>
         <div class="amb-card-label">Dormitorios</div>
       </div>
       <div class="amb-card" onclick="selAmb(this,'Cocinas')">
-        <img class="amb-card-img" src="images/amb-cocinas.jpg" alt="Cocinas"
-             onerror="this.style.background='#C8E6C9'"/>
+        <img class="amb-card-img" src="images/amb-cocinas.jpg" alt="Cocinas" onerror="this.style.opacity='0';this.parentNode.style.background='#C8E6C9'"/>
         <div class="amb-card-label">Cocinas</div>
       </div>
       <div class="amb-card" onclick="selAmb(this,'Oficina')">
-        <img class="amb-card-img" src="images/amb-oficina.jpg" alt="Oficina"
-             onerror="this.style.background='#E8E8E4'"/>
+        <img class="amb-card-img" src="images/amb-oficina.jpg" alt="Oficina" onerror="this.style.opacity='0';this.parentNode.style.background='#E8E8E4'"/>
         <div class="amb-card-label">Oficina</div>
       </div>
-      <div class="amb-card" onclick="selAmb(this,'Baños')">
-        <img class="amb-card-img" src="images/amb-banos.jpg" alt="Baños"
-             onerror="this.style.background='#D4EEF7'"/>
-        <div class="amb-card-label">Baños</div>
-      </div>
     </div>
-
-    <!-- Banner inspiración -->
-    <!-- ════════════════════════════════════════
-         BANNER INSPIRACIÓN
-         Archivo: images/banner-inspiracion.jpg
-         Tamaño recomendado: 800×400px, jpg o webp
-         Foto de un ambiente IKEA amplio y bonito
-    ════════════════════════════════════════ -->
     <div class="inspo-banner" style="margin-top:20px;">
-      <img class="inspo-banner-img" src="images/banner-inspiracion.jpg" alt="Inspiración"
-           onerror="this.style.background='linear-gradient(135deg,#004f93,#0073CF)'"/>
+      <img class="inspo-banner-img" src="images/banner-inspiracion.jpg" alt="Inspiración" onerror="this.style.opacity='0';this.parentNode.style.background='linear-gradient(135deg,#004f93,#0073CF)'"/>
       <div class="inspo-banner-overlay"></div>
-      <div class="inspo-banner-text">
-        <h3>Espacios pequeños,<br>grandes ideas</h3>
-        <p>Ver ideas →</p>
-      </div>
+      <div class="inspo-banner-text"><h3>Espacios pequeños,<br>grandes ideas</h3><p>Ver ideas →</p></div>
     </div>
-
-    <!-- Productos destacados -->
     <div class="sec-hd" style="margin-top:20px;">Destacados <span class="sec-link">Ver más</span></div>
     <div class="prod-list" id="home-prod-list"></div>
-
-    <!-- Botón escanear -->
     <button class="qr-fab" onclick="goTo('scanner')">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M3 17v4M7 17v4M3 21h4M3 14h7v3"/></svg>
       Escanear QR
     </button>
     <div style="height:12px;"></div>
-  </div><!-- /screen-home -->
+  </div>
 
-  <!-- ══════════════════════════════
-       ESCÁNER
-  ══════════════════════════════ -->
   <div class="screen" id="screen-scanner">
     <div class="scn-top">
       <div class="scn-left">
-        <!-- Logo pequeño en escáner -->
-        <img src="images/ikea-logo.png" alt="IKEA" class="scn-logo"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+        <img src="images/ikea-logo.png" alt="IKEA" class="scn-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
         <div class="scn-logo-fallback" style="display:none;">IKEA</div>
         <div class="scn-title">Escanear producto</div>
       </div>
-      <button class="xbtn" onclick="stopScanner();goTo('home')">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <button class="xbtn" onclick="stopScanner();goTo('home')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-
-    <!-- Cámara QR -->
     <div class="qr-wrap" id="qr-wrap">
       <div id="qr-reader"></div>
-      <!-- Máscaras de oscurecimiento -->
-      <div class="qr-mask-top"></div>
-      <div class="qr-mask-bot"></div>
-      <div class="qr-mask-left"></div>
-      <div class="qr-mask-right"></div>
-      <!-- Frame amarillo encima -->
-      <div class="qr-overlay">
-        <div class="qr-frame">
-          <div class="qr-corner qc-tl"></div><div class="qr-corner qc-tr"></div>
-          <div class="qr-corner qc-bl"></div><div class="qr-corner qc-br"></div>
-          <div class="qr-line"></div>
-        </div>
-      </div>
+      <div class="qr-mask-top"></div><div class="qr-mask-bot"></div><div class="qr-mask-left"></div><div class="qr-mask-right"></div>
+      <div class="qr-overlay"><div class="qr-frame"><div class="qr-corner qc-tl"></div><div class="qr-corner qc-tr"></div><div class="qr-corner qc-bl"></div><div class="qr-corner qc-br"></div><div class="qr-line"></div></div></div>
     </div>
     <div class="qr-hint">Apunta la cámara a un código QR de producto IKEA</div>
-    <div class="qr-status">
-      <div class="qr-dot" id="qr-dot"></div>
-      <div class="qr-status-txt" id="qr-txt">Iniciando cámara…</div>
-    </div>
-    <div class="demo-sep">
-      <div class="demo-sep-line"></div><div class="demo-sep-txt">O toca para simular escaneo</div><div class="demo-sep-line"></div>
-    </div>
+    <div class="qr-status"><div class="qr-dot" id="qr-dot"></div><div class="qr-status-txt" id="qr-txt">Iniciando cámara…</div></div>
+    <div class="demo-sep"><div class="demo-sep-line"></div><div class="demo-sep-txt">O toca para simular escaneo</div><div class="demo-sep-line"></div></div>
     <div class="dp-list" id="dp-list"></div>
     <div style="height:10px;"></div>
   </div>
 
-  <!-- ══════════════════════════════
-       MI LISTA
-  ══════════════════════════════ -->
   <div class="screen" id="screen-lista">
     <div class="lhd"><h2>Mi lista</h2><p id="lcnt">0 productos guardados</p></div>
     <div id="lempty" class="empty">
       <div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
-      <h3>Tu lista está vacía</h3>
-      <p>Escanea productos en la tienda<br>para agregarlos aquí.</p>
+      <h3>Tu lista está vacía</h3><p>Escanea productos en la tienda<br>para agregarlos aquí.</p>
       <button class="btn-blue" style="width:auto;padding:12px 26px;" onclick="goTo('scanner')">Ir a escanear</button>
     </div>
     <div id="lcont" style="display:none;flex-direction:column;flex:1;">
       <div class="lbody" id="litems"></div>
-      <div class="lft">
-        <div class="trow"><div class="tlbl">Total estimado</div><div class="tval" id="ltotal">$0</div></div>
-        <button class="btn-yellow" onclick="goTo('mapa')">Ver mi ruta en la tienda →</button>
-      </div>
+      <div class="lft"><div class="trow"><div class="tlbl">Total estimado</div><div class="tval" id="ltotal">$0</div></div><button class="btn-yellow" onclick="goTo('mapa')">Ver mi ruta en la tienda →</button></div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════
-       MAPA
-  ══════════════════════════════ -->
   <div class="screen" id="screen-mapa">
     <div class="mhd"><h2>Mi ruta en tienda</h2><div class="mhd-sub"><span class="loc-dot"></span><span id="mapa-loc-txt">Calculando posición…</span></div></div>
     <div class="nav-banner" id="nav-banner">
@@ -656,41 +456,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
     </div>
     <div class="map-container">
       <svg id="map-svg" viewBox="0 0 220 220" style="width:100%; height:auto; background:#0f2c59; border-radius:14px; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);">
-  
         <path d="M 20 70 L 130 70 M 130 20 L 130 110 L 190 110 M 90 110 L 90 190 M 130 140 L 165 140 L 165 190" fill="none" stroke="#1a3d6c" stroke-width="2" />
-        
         <text x="25" y="35" font-size="7" font-family="sans-serif" font-weight="bold" fill="#ffffff" opacity="0.25">3F: EXHIBICIÓN DE MUEBLES</text>
-        
         <path id="ikea-labyrinth" d="M 25 55 L 75 55 L 75 25 L 115 25 L 115 85 L 175 85 L 175 145 L 115 145 L 115 115 L 75 115 L 75 175 L 25 175 L 25 200 L 195 200" fill="none" stroke="#1d447a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-        
         <path id="route-path" d="" fill="none" stroke="#FFDB00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 5" style="animation: dash 20s linear infinite; stroke-shadow: 0 2px 4px rgba(0,0,0,0.5);"/>
-        
         <circle cx="25" cy="55" r="4.5" fill="#22C55E" />
         <text x="25" y="57.5" font-size="6" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">E</text>
-        
         <circle cx="195" cy="200" r="4.5" fill="#EF4444" />
         <text x="195" y="202.5" font-size="6" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff">C</text>
-      
         <g id="map-pins"></g>
       </svg>
     </div>
-    <div class="step-list" id="step-list"></div>
     <div class="map-controls">
-      <button class="map-btn map-btn-reset" onclick="resetNav()">
-        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.15"/></svg>
-        Reiniciar
-      </button>
-      <button class="map-btn map-btn-next" onclick="nextStep()" id="btn-next" style="flex:2;">
-        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Siguiente parada
-      </button>
+      <button class="map-btn map-btn-reset" onclick="resetNav()"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.15"/></svg>Reiniciar</button>
+      <button class="map-btn map-btn-next" onclick="nextStep()" id="btn-next" style="flex:2;"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Siguiente parada</button>
     </div>
     <div style="height:6px;"></div>
   </div>
 
-  <!-- ══════════════════════════════
-       RETO
-  ══════════════════════════════ -->
   <div class="screen" id="screen-reto">
     <div class="rhd">
       <div class="rhd-top"><div><h2>IKEA Smart Hunt</h2><p>¡Explora, encuentra y gana premios!</p></div><div class="rtarget-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div></div>
@@ -707,10 +490,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       <div class="rwc" onclick="claimR()"><div class="rwc-icon"><svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div><h3>¡Canjea tus puntos!</h3><p>200 pts = 10% de descuento en tu compra</p></div></div>
     </div>
   </div>
-
  </div>
 
- <!-- NAV -->
  <nav class="bnav">
   <div class="nbar" id="nbar"></div>
   <button class="ni active" id="nav-home" onclick="goTo('home')"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="ni-lbl">Inicio</span></button>
@@ -721,12 +502,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
  </nav>
 </div>
 
-<!-- MODAL -->
 <div class="overlay" id="overlay" onclick="maybeClose(event)">
  <div class="msheet"><div class="mhdl"></div><div id="mbody"></div></div>
 </div>
 
-<!-- QR RESULT -->
 <div class="qr-result" id="qr-result">
   <div class="qrr-icon" id="qrr-icon"></div>
   <div class="qrr-inf"><div class="qrr-nm" id="qrr-nm">—</div><div class="qrr-pr" id="qrr-pr">—</div></div>
@@ -735,9 +514,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 <div class="toast" id="toast-el"></div>
 
 <script>
-// ============================================================================
-// 1. VARIABLES DE ESTADO GLOBAL (Obligatorias para el Shell SPA)
-// ============================================================================
 let cur = 'home';
 const ORDER = ['home', 'scanner', 'lista', 'mapa', 'reto'];
 let navStep = 0;
@@ -750,85 +526,40 @@ let qrActive = false;
 let qrStarting = false;
 let pendingQrId = null;
 
-// Diccionario de equivalencias para lectura del escáner
-const QR_MAP = {
-  "sofa": "sofa",
-  "comoda": "comoda",
-  "mesa": "mesa",
-  "cojin": "cojin"
-};
+const QR_MAP = { "sofa": "sofa", "comoda": "comoda", "mesa": "mesa", "cojin": "cojin" };
 
-// ============================================================================
-// 2. MAQUETA DE PRODUCTOS CON ASIGNACIÓN DE SECCIONES REALES (1 al 8)
-// ============================================================================
 const P = {
-  sofa: { 
-    id: 'sofa', 
-    name: 'SÖDERHAMN', 
-    price: 2199900, 
-    mapX: 75, mapY: 55, // Sección 2: Sala
-    seccion: 2,
-    img: 'images/prod-soderhamn.jpg', 
-    loc: 'Sala · Sección 2',
-    desc: 'Sofá de 3 plazas'
-  },
-  mesa: { 
-    id: 'mesa', 
-    name: 'LACK', 
-    price: 79900, 
-    mapX: 175, mapY: 85, // Sección 4: Oficina y escritorios
-    seccion: 4,
-    img: 'images/prod-lack.jpg', 
-    loc: 'Oficina · Sección 4',
-    desc: 'Mesa auxiliar básica'
-  },
-  comoda: { 
-    id: 'comoda', 
-    name: 'HEMNES', 
-    price: 1299900, 
-    mapX: 115, mapY: 115, // Sección 7: Dormitorio
-    seccion: 7,
-    img: 'images/prod-hemnes.jpg', 
-    loc: 'Dormitorio · Sección 7',
-    desc: 'Cómoda de 8 cajones'
-  },
-  cojin: { 
-    id: 'cojin', 
-    name: 'FJÄDRAR', 
-    price: 49900, 
-    mapX: 75, mapY: 175, // Sección 8: Clósets y armarios
-    seccion: 8,
-    img: 'images/prod-fjadrar.jpg', 
-    loc: 'Clósets · Sección 8',
-    desc: 'Cojín interior plumas'
-  }
+  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 75, mapY: 55, seccion: 2, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Sección 2', desc: 'Sofá de 3 plazas' },
+  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 175, mapY: 85, seccion: 4, img: 'images/prod-lack.jpg', loc: 'Oficina · Sección 4', desc: 'Mesa auxiliar básica' },
+  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 115, mapY: 115, seccion: 7, img: 'images/prod-hemnes.jpg', loc: 'Dormitorio · Sección 7', desc: 'Cómoda de 8 cajones' },
+  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 75, mapY: 175, seccion: 8, img: 'images/prod-fjadrar.jpg', loc: 'Clósets · Sección 8', desc: 'Cojín interior plumas' }
 };
 
-// Puntos de anclaje de la infraestructura (Coordenadas de los pasillos)
-const ENTRADA = { x: 25, y: 55 };
-const SALIDA = { x: 195, y: 200 };
-
-// ============================================================================
-// 3. EVENTO DE CARGA INICIAL (Ciclo de vida del Splash Screen)
-// ============================================================================
-window.addEventListener('load', () => {
-  renderHomeProds();
-  renderDPList();
+// ==========================================================
+// ARRANQUE SEGURO (Adiós al congelamiento del Splash)
+// ==========================================================
+function initApp() {
+  try {
+    renderHomeProds();
+    renderDPList();
+    updBar('home');
+  } catch(e) { console.error("Error UI:", e); }
   
-  // Apagar la pantalla de carga de manera segura
   setTimeout(() => {
     const s = document.getElementById('splash');
-    if (s) {
-      s.classList.add('hide');
-      setTimeout(() => s.remove(), 600);
-    }
-  }, 1800);
-  updBar('home');
-});
+    if (s) { s.classList.add('hide'); setTimeout(() => s.remove(), 600); }
+  }, 1200);
+}
 
-// ============================================================================
-// 4. CONTROLADOR DE ENRUTAMIENTO (Navegación Interactiva SPA)
-// ============================================================================
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+// ==========================================================
+// CONTROLADORES
+// ==========================================================
 function goTo(id) {
   if (id === cur) return;
   const cs = document.getElementById('screen-' + cur);
@@ -861,34 +592,22 @@ function goTo(id) {
   cur = id;
   updBar(id);
   
-  // Encapsulamiento seguro por vista activa
   try {
     if (id === 'lista') renderLista();
     if (id === 'mapa') renderMapa();
-    if (id === 'scanner') startScanner();
-    else stopScanner();
-  } catch(e) {
-    console.error("Fallo controlado en cambio de pestaña:", e);
-  }
+    if (id === 'scanner') startScanner(); else stopScanner();
+  } catch(e) { console.error(e); }
 }
 
 function updBar(id) {
   const w = 100 / 5;
   const idx = ORDER.indexOf(id);
   const b = document.getElementById('nbar');
-  if (b && idx !== -1) {
-    b.style.left = `${w * idx}%`;
-    b.style.width = `${w}%`;
-  }
+  if (b && idx !== -1) { b.style.left = `${w * idx}%`; b.style.width = `${w}%`; }
 }
 
-// ============================================================================
-// 5. CÁLCULO DE NAVEGACIÓN Y ENRUTAMIENTO DINÁMICO POR PASILLOS
-// ============================================================================
 function calcularRutaOptima() {
-  return Object.keys(cart)
-    .filter(k => cart[k] && cart[k].qty > 0)
-    .sort((a, b) => P[a].seccion - P[b].seccion);
+  return Object.keys(cart).filter(k => cart[k] && cart[k].qty > 0).sort((a, b) => P[a].seccion - P[b].seccion);
 }
 
 function renderMapa() {
@@ -898,11 +617,8 @@ function renderMapa() {
   const instEl = document.getElementById('nb-inst');
   const subEl = document.getElementById('nb-sub');
   const distEl = document.getElementById('nb-dist');
-  const txtLoc = document.getElementById('mapa-loc-txt');
   
   if (!pathEl || !pinsContainer) return; 
-
-  if (txtLoc) txtLoc.textContent = "Área de exhibición activa";
   pinsContainer.innerHTML = '';
 
   if (!rutaDinamica.length) {
@@ -915,17 +631,10 @@ function renderMapa() {
 
   if (navStep > rutaDinamica.length) navStep = rutaDinamica.length;
 
-  // Evaluar cuál es el punto secuencial más lejano del carrito
   let seccionMaxima = 1;
-  rutaDinamica.forEach((id) => {
-    if (P[id].seccion > seccionMaxima) seccionMaxima = P[id].seccion;
-  });
-  
-  if (navStep >= rutaDinamica.length) {
-    seccionMaxima = 10; // Redirigir el trazo hacia las cajas al culminar
-  }
+  rutaDinamica.forEach(id => { if (P[id].seccion > seccionMaxima) seccionMaxima = P[id].seccion; });
+  if (navStep >= rutaDinamica.length) seccionMaxima = 10;
 
-  // Trazar el camino sinuoso respetando los muros del SVG
   let dParam = "M 25 55";
   if (seccionMaxima >= 2) dParam += " L 75 55";
   if (seccionMaxima >= 3) dParam += " L 75 25 L 115 25";
@@ -938,392 +647,138 @@ function renderMapa() {
 
   pathEl.setAttribute('d', dParam);
 
-  // Inyectar los pines en sus coordenadas espaciales inmutables
   rutaDinamica.forEach((id, i) => {
     const p = P[id];
     const isCurrent = i === navStep;
     const isVisited = i < navStep;
 
-    let fillPin = '#FFDB00'; 
-    let strokePin = '#0f2c59';
-    let textColor = '#000000';
-
-    if (isCurrent) {
-      fillPin = '#0058A3'; 
-      strokePin = '#FFFFFF';
-      textColor = '#FFFFFF';
-    } else if (isVisited) {
-      fillPin = '#1d447a'; 
-      strokePin = '#0f2c59';
-      textColor = '#6E6E6A';
-    }
+    let fillPin = isCurrent ? '#0058A3' : (isVisited ? '#1d447a' : '#FFDB00');
+    let strokePin = isCurrent ? '#FFFFFF' : '#0f2c59';
+    let textColor = isVisited ? '#6E6E6A' : (isCurrent ? '#FFF' : '#000');
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
     
     if (isCurrent) {
-      const pulseCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      pulseCircle.setAttribute('cx', p.mapX);
-      pulseCircle.setAttribute('cy', p.mapY);
-      pulseCircle.setAttribute('r', '8');
-      pulseCircle.setAttribute('fill', 'none');
-      pulseCircle.setAttribute('stroke', '#0058A3');
-      pulseCircle.setAttribute('stroke-width', '1');
-      pulseCircle.setAttribute('opacity', '0.6');
-      g.appendChild(pulseCircle);
+      const pC = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pC.setAttribute('cx', p.mapX); pC.setAttribute('cy', p.mapY); pC.setAttribute('r', '8');
+      pC.setAttribute('fill', 'none'); pC.setAttribute('stroke', '#0058A3'); pC.setAttribute('opacity', '0.6');
+      g.appendChild(pC);
     }
 
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', p.mapX);
-    circle.setAttribute('cy', p.mapY);
-    circle.setAttribute('r', isCurrent ? '5.5' : '4.5');
-    circle.setAttribute('fill', fillPin);
-    circle.setAttribute('stroke', strokePin);
-    circle.setAttribute('stroke-width', '1');
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', p.mapX); c.setAttribute('cy', p.mapY); c.setAttribute('r', isCurrent ? '5.5' : '4.5');
+    c.setAttribute('fill', fillPin); c.setAttribute('stroke', strokePin);
 
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', p.mapX);
-    text.setAttribute('y', p.mapY + 2);
-    text.setAttribute('font-size', '5.5');
-    text.setAttribute('font-family', 'sans-serif');
-    text.setAttribute('font-weight', 'bold');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', textColor);
-    text.textContent = isVisited ? '✓' : (i + 1);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', p.mapX); t.setAttribute('y', p.mapY + 2);
+    t.setAttribute('font-size', '5.5'); t.setAttribute('font-weight', 'bold'); t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', textColor); t.textContent = isVisited ? '✓' : (i + 1);
 
-    g.appendChild(circle);
-    g.appendChild(text);
-    pinsContainer.appendChild(g);
+    g.appendChild(c); g.appendChild(t); pinsContainer.appendChild(g);
   });
 
-  // Actualizar los paneles inferiores de información instructiva
   if (navStep < rutaDinamica.length) {
-    const actual = P[rutaDinamica[navStep]];
-    if (instEl) instEl.textContent = `Recoger: ${actual.name}`;
-    if (subEl) subEl.textContent = actual.loc;
+    if (instEl) instEl.textContent = `Recoger: ${P[rutaDinamica[navStep]].name}`;
+    if (subEl) subEl.textContent = P[rutaDinamica[navStep]].loc;
     if (distEl) distEl.textContent = `Paso ${navStep + 1} de ${rutaDinamica.length}`;
   } else {
     if (instEl) instEl.textContent = "¡Todos los productos recogidos! 🎉";
-    if (subEl) subEl.textContent = "Dirígete a la zona de cajas y salida.";
+    if (subEl) subEl.textContent = "Dirígete a cajas.";
     if (distEl) distEl.textContent = "FIN";
   }
 }
 
 function nextStep() {
   const ruta = calcularRutaOptima();
-  if (!ruta.length) { toast('Tu lista está vacía'); return; }
-  if (navStep >= ruta.length) { toast('¡Ruta completada! Dirígete a Cajas.'); return; }
-  
+  if (!ruta.length || navStep >= ruta.length) return;
   if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
-  navStep++;
-  renderMapa();
+  navStep++; renderMapa();
 }
+function resetNav() { navStep = 0; renderMapa(); toast('Ruta reiniciada'); }
 
-function resetNav() {
-  navStep = 0;
-  renderMapa();
-  toast('Ruta de recolección reiniciada');
-}
-
-// ============================================================================
-// 6. CONTROLADOR HARDWARE DEL LECTOR DE CÁMARA QR
-// ============================================================================
+// ==========================================================
+// ESCÁNER (Blindado)
+// ==========================================================
 function startScanner() {
-  if (qrActive || qrStarting) return;
-  qrStarting = true;
-  setQrStatus('', 'Iniciando cámara…');
-
-  if (html5Qr) {
-    try { html5Qr.clear(); } catch(e) {}
+  if (typeof Html5Qrcode === 'undefined') {
+    setQrStatus('err', 'Librería no disponible'); return;
   }
+  if (qrActive || qrStarting) return;
+  qrStarting = true; setQrStatus('', 'Iniciando cámara…');
   
+  if (html5Qr) { try { html5Qr.clear(); } catch(e) {} }
   html5Qr = new Html5Qrcode("qr-reader");
-  const config = {
-    fps: 15,
-    qrbox: (w, h) => { const m = Math.min(w, h); const s = Math.floor(m * 0.7); return { width: s, height: s }; },
-    aspectRatio: 1.0
-  };
-
-  html5Qr.start(
-    { facingMode: "environment" },
-    config,
-    onQrSuccess,
-    () => {}
+  
+  html5Qr.start({ facingMode: "environment" }, { fps: 15, qrbox: (w, h) => ({ width: Math.floor(Math.min(w, h)*0.7), height: Math.floor(Math.min(w, h)*0.7) }) },
+    onQrSuccess, () => {}
   ).then(() => {
-    qrActive = true;
-    qrStarting = false;
-    setQrStatus('on', 'Buscando códigos de barra o QR…');
-  }).catch(err => {
-    qrStarting = false;
-    setQrStatus('err', 'Cámara no disponible');
-    console.error(err);
+    qrActive = true; qrStarting = false; setQrStatus('on', 'Buscando códigos…');
+  }).catch(e => {
+    qrStarting = false; setQrStatus('err', 'Cámara no disponible');
   });
 }
-
 function stopScanner() {
   if (!html5Qr || !qrActive) return;
-  html5Qr.stop().then(() => {
-    try { html5Qr.clear(); } catch(e) {}
-    qrActive = false;
-    qrStarting = false;
-    setQrStatus('', '—');
-  }).catch(() => {
-    qrActive = false;
-    qrStarting = false;
-  });
+  html5Qr.stop().then(() => { qrActive = false; setQrStatus('', '—'); }).catch(() => { qrActive = false; });
 }
-
 function onQrSuccess(text) {
   const pid = QR_MAP[text.trim()];
-  if (!pid) { toast('Código no mapeado: ' + text.substring(0, 15)); return; }
+  if (!pid) return;
   if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
-  
-  const wrap = document.getElementById('qr-wrap');
-  if (wrap) {
-    wrap.classList.remove('flash');
-    void wrap.offsetWidth;
-    wrap.classList.add('flash');
-  }
+  const w = document.getElementById('qr-wrap'); if(w) { w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
   showQrResult(pid);
 }
-
-function setQrStatus(cls, msg) {
-  const dot = document.getElementById('qr-dot');
-  const txt = document.getElementById('qr-txt');
-  if (dot) dot.className = 'qr-dot' + (cls ? ' ' : '') + cls;
-  if (txt) txt.textContent = msg;
-}
-
+function setQrStatus(c, m) { const d=document.getElementById('qr-dot'); const t=document.getElementById('qr-txt'); if(d) d.className='qr-dot '+c; if(t) t.textContent=m; }
 function showQrResult(id) {
-  const p = P[id]; if (!p) return;
-  pendingQrId = id;
-  
-  const icon = document.getElementById('qrr-icon');
-  if (icon) icon.innerHTML = `<img src="${p.img}" alt="" onerror="this.remove()"/>`;
-  
-  const nm = document.getElementById('qrr-nm');
-  const pr = document.getElementById('qrr-pr');
-  if (nm) nm.textContent = p.name;
-  if (pr) pr.textContent = fmt(p.price);
-  
-  const res = document.getElementById('qr-result');
-  if (res) {
-    res.classList.add('show');
-    setTimeout(() => res.classList.remove('show'), 5000);
-  }
+  pendingQrId = id; const p = P[id];
+  document.getElementById('qrr-icon').innerHTML = `<img src="${p.img}" onerror="this.style.opacity='0'"/>`;
+  document.getElementById('qrr-nm').textContent = p.name; document.getElementById('qrr-pr').textContent = fmt(p.price);
+  const r = document.getElementById('qr-result'); if(r) { r.classList.add('show'); setTimeout(()=>r.classList.remove('show'), 5000); }
 }
+function addFromQR() { if (!pendingQrId) return; document.getElementById('qr-result').classList.remove('show'); doAddProd(pendingQrId); pendingQrId = null; }
 
-function addFromQR() {
-  if (!pendingQrId) return;
-  const res = document.getElementById('qr-result');
-  if (res) res.classList.remove('show');
-  doAddProd(pendingQrId);
-  pendingQrId = null;
-}
-
-function scanProd(id) {
-  if (cart[id]) { toast(P[id].name + ' ya está en tu lista'); return; }
-  doAddProd(id);
-}
-
-function doAddProd(id) {
-  const p = P[id];
-  cart[id] = { product: p, qty: 1 };
-  updBadge();
-  markDP(id);
-  toast(p.name + ' guardado');
-  setTimeout(() => openModal(id), 350);
-}
-
-function markDP(id) {
-  const el = document.getElementById('dp-' + id);
-  const db = document.getElementById('db-' + id);
-  if (el) el.classList.add('sc');
-  if (db) {
-    db.className = 'dp-act dp-chk';
-    db.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  }
-}
-
-// ============================================================================
-// 7. COMPONENTES RENDERIZADORES DE INTERFAZ E IMÁGENES
-// ============================================================================
-function imgOrSvg(p) {
-  return `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.remove()">`;
-}
+// ==========================================================
+// UTILIDADES Y RENDER UI
+// ==========================================================
+function fmt(n) { return '$' + (n||0).toLocaleString('es-CO'); }
+function imgOrSvg(p) { return `<img src="${p.img}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.opacity='0'">`; }
+function toast(m) { const t=document.getElementById('toast-el'); if(!t) return; t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'), 2600); }
+function selAmb(el, n) { document.querySelectorAll('.amb-card').forEach(c=>c.classList.remove('on')); if(el)el.classList.add('on'); toast('Explorando: '+n); }
 
 function renderHomeProds() {
-  const el = document.getElementById('home-prod-list');
-  if (!el) return;
-  el.innerHTML = Object.values(P).map(p => `
-    <div class="prod-card" onclick="openModal('${p.id}')">
-      <div class="prod-img-box">${imgOrSvg(p)}</div>
-      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
-      <div class="prod-price">${fmt(p.price)}</div>
-      <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>`).join('');
+  const el = document.getElementById('home-prod-list'); if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `<div class="prod-card" onclick="openModal('${p.id}')"><div class="prod-img-box">${imgOrSvg(p)}</div><div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div><div class="prod-price">${fmt(p.price)}</div><div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>`).join('');
 }
-
 function renderDPList() {
-  const el = document.getElementById('dp-list');
-  if (!el) return;
-  el.innerHTML = Object.values(P).map(p => `
-    <div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')">
-      <div class="dp-icon">${imgOrSvg(p)}</div>
-      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
-      <div class="dp-pr">${fmt(p.price)}</div>
-      <div class="dp-act dp-add" id="db-${p.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-    </div>`).join('');
+  const el = document.getElementById('dp-list'); if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `<div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')"><div class="dp-icon">${imgOrSvg(p)}</div><div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div><div class="dp-pr">${fmt(p.price)}</div><div class="dp-act dp-add" id="db-${p.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></div>`).join('');
 }
-
-// ============================================================================
-// 8. LOGICA DE NÚCLEO PARA ELEMENTOS MODALES
-// ============================================================================
 function openModal(id) {
   const p = P[id]; if (!p) return;
-  const inC = !!cart[id];
-  const mbody = document.getElementById('mbody');
-  if (!mbody) return;
-  
-  mbody.innerHTML = `
-    <div class="mtitle">${p.name}</div>
-    <div class="msub">${p.desc}</div>
-    <div class="mprev">
-      <img class="mprev-img" src="${p.img}" alt="" onerror="this.remove()"/>
-      <div class="mprev-info"><div class="mpn">${p.name}</div><div class="mpp">${fmt(p.price)}</div></div>
-    </div>
-    <div class="irow"><div class="il">Ubicación</div><div class="iv">${p.loc}</div></div>
-    <div class="irow"><div class="il">Disponibilidad</div><div class="iv ok">En stock ✓</div></div>
-    <div class="mbtns">
-      ${inC ? '<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>'
-           : `<button class="btn-blue" onclick="addM('${id}')">Guardar en mi lista</button>`}
-      <button class="btn-outline" onclick="closeModal();goTo('mapa')">Ver camino en mapa →</button>
-    </div>`;
-  
-  const ov = document.getElementById('overlay');
-  if (ov) ov.classList.add('show');
+  document.getElementById('mbody').innerHTML = `<div class="mtitle">${p.name}</div><div class="msub">${p.desc}</div><div class="mprev"><img class="mprev-img" src="${p.img}" onerror="this.style.opacity='0'"/><div class="mprev-info"><div class="mpn">${p.name}</div><div class="mpp">${fmt(p.price)}</div></div></div><div class="irow"><div class="il">Ubicación</div><div class="iv">${p.loc}</div></div><div class="irow"><div class="il">Disponibilidad</div><div class="iv ok">En stock ✓</div></div><div class="mbtns">${cart[id] ? '<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>' : `<button class="btn-blue" onclick="addM('${id}')">Guardar</button>`}<button class="btn-outline" onclick="closeModal();goTo('mapa')">Ver en mapa →</button></div>`;
+  document.getElementById('overlay').classList.add('show');
 }
+function addM(id) { cart[id] = { product: P[id], qty: 1 }; updBadge(); toast(P[id].name + ' guardado'); closeModal(); markDP(id); }
+function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+function maybeClose(e) { if(e.target.id==='overlay') closeModal(); }
+function scanProd(id) { if (cart[id]) { toast('Ya está en tu lista'); return; } doAddProd(id); }
+function doAddProd(id) { cart[id] = { product: P[id], qty: 1 }; updBadge(); markDP(id); toast(P[id].name + ' guardado'); setTimeout(()=>openModal(id), 350); }
+function markDP(id) { const e=document.getElementById('dp-'+id); const d=document.getElementById('db-'+id); if(e) e.classList.add('sc'); if(d){ d.className='dp-act dp-chk'; d.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`; } }
 
-function addM(id) {
-  cart[id] = { product: P[id], qty: 1 };
-  updBadge();
-  toast(P[id].name + ' agregado');
-  closeModal();
-  markDP(id);
-}
-function closeModal() { const ov = document.getElementById('overlay'); if (ov) ov.classList.remove('show'); }
-function maybeClose(e) { if (e.target.id === 'overlay') closeModal(); }
-
-// ============================================================================
-// 9. PANEL GESTOR DE MI CARRITO DE COMPRAS
-// ============================================================================
 function renderLista() {
   const keys = Object.keys(cart).filter(k => cart[k] && cart[k].qty > 0);
-  const lcnt = document.getElementById('lcnt');
-  if (lcnt) lcnt.textContent = keys.length + ' producto' + (keys.length !== 1 ? 's' : '') + ' guardado' + (keys.length !== 1 ? 's' : '');
-  
-  const lempty = document.getElementById('lempty');
-  const lcont = document.getElementById('lcont');
-  
-  if (!keys.length) {
-    if (lempty) lempty.style.display = 'flex';
-    if (lcont) lcont.style.display = 'none';
-    return;
-  }
-  
-  if (lempty) lempty.style.display = 'none';
-  if (lcont) lcont.style.display = 'flex';
-  
-  const litems = document.getElementById('litems');
-  if (litems) {
-    litems.innerHTML = keys.map((k, i) => {
-      const { product: p, qty } = cart[k];
-      return `<div class="l-item" style="animation-delay:${i * .05}s">
-        <div class="l-icon">${imgOrSvg(p)}</div>
-        <div class="l-inf"><div class="l-nm">${p.name}</div><div class="l-sub">${p.desc}</div>
-          <div class="qrow">
-            <button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            <div class="qv">${qty}</div>
-            <button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            <div class="l-pr">${fmt(p.price * qty)}</div>
-          </div>
-        </div>
-        <button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-      </div>`;
-    }).join('');
-  }
-  updTotal();
+  document.getElementById('lcnt').textContent = keys.length + ' producto' + (keys.length!==1?'s':'') + ' guardado' + (keys.length!==1?'s':'');
+  if (!keys.length) { document.getElementById('lempty').style.display = 'flex'; document.getElementById('lcont').style.display = 'none'; return; }
+  document.getElementById('lempty').style.display = 'none'; document.getElementById('lcont').style.display = 'flex';
+  document.getElementById('litems').innerHTML = keys.map((k, i) => `<div class="l-item" style="animation-delay:${i*.05}s"><div class="l-icon">${imgOrSvg(cart[k].product)}</div><div class="l-inf"><div class="l-nm">${cart[k].product.name}</div><div class="qrow"><button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="qv">${cart[k].qty}</div><button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div class="l-pr">${fmt(cart[k].product.price * cart[k].qty)}</div></div></div><button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>`).join('');
+  document.getElementById('ltotal').textContent = fmt(Object.values(cart).reduce((s, c) => s + (c.product.price * c.qty), 0));
 }
-
-function cQ(id, d) { if (!cart[id]) return; cart[id].qty = Math.max(1, cart[id].qty + d); renderLista(); }
+function cQ(id, d) { cart[id].qty = Math.max(1, cart[id].qty + d); renderLista(); }
 function rmI(id) { delete cart[id]; updBadge(); renderLista(); }
-function updTotal() { 
-  const tot = document.getElementById('ltotal');
-  if (tot) tot.textContent = fmt(Object.values(cart).reduce((s, { product: p, qty }) => s + (p.price * qty), 0)); 
-}
-function updBadge() {
-  const n = Object.keys(cart).filter(k => cart[k] && cart[k].qty > 0).length;
-  const b = document.getElementById('nbadge');
-  if (b) {
-    b.textContent = n;
-    b.style.display = n > 0 ? 'flex' : 'none';
-  }
-}
-
-// ============================================================================
-// 10. MÓDULO GAMIFICATION (IKEA Hunt)
-// ============================================================================
-function completeC(id, pts, name) {
-  if (done[id]) return;
-  done[id] = true;
-  rPts += pts;
-  rN = Math.min(rN + 1, 10);
-  
-  const n = id.slice(-1);
-  const cs = document.getElementById('cs' + n);
-  if (cs) {
-    cs.className = 'chs-box chs-done';
-    cs.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  }
-  
-  const row = document.getElementById(id);
-  if (row) row.classList.add('done');
-  
-  const ptsEl = document.getElementById('rpts');
-  const progEl = document.getElementById('rprog');
-  const fillEl = document.getElementById('pfill');
-  
-  if (ptsEl) ptsEl.textContent = rPts + ' pts';
-  if (progEl) progEl.textContent = rN + ' / 10';
-  if (fillEl) fillEl.style.width = (rN * 10) + '%';
-  
-  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
-  toast('+' + pts + ' pts — ' + name);
-}
-
-function claimR() {
-  toast(rPts >= 200 ? '¡10% de descuento aplicado con éxito!' : 'Necesitas un mínimo de 200 pts');
-}
-
-// ============================================================================
-// 11. RECURSOS AUXILIARES Y UTILIDADES DE FORMATO
-// ============================================================================
-function fmt(n) { return '$' + n.toLocaleString('es-CO'); }
-function selAmb(el, name) {
-  document.querySelectorAll('.amb-card').forEach(c => c.classList.remove('on'));
-  if (el) el.classList.add('on');
-  toast('Explorando: ' + name);
-}
-
-let tt;
-function toast(msg) {
-  const t = document.getElementById('toast-el');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(tt);
-  tt = setTimeout(() => t.classList.remove('show'), 2600);
-}
+function updBadge() { const n = Object.keys(cart).filter(k=>cart[k]&&cart[k].qty>0).length; const b=document.getElementById('nbadge'); if(b){ b.textContent=n; b.style.display=n>0?'flex':'none'; } }
+function completeC(id, pts, n) { if(done[id])return; done[id]=true; rPts+=pts; rN=Math.min(rN+1,10); document.getElementById('cs'+id.slice(-1)).className='chs-box chs-done'; document.getElementById('cs'+id.slice(-1)).innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`; document.getElementById(id).classList.add('done'); document.getElementById('rpts').textContent=rPts+' pts'; document.getElementById('rprog').textContent=rN+' / 10'; document.getElementById('pfill').style.width=(rN*10)+'%'; toast('+'+pts+' pts'); }
+function claimR() { toast(rPts >= 200 ? '¡Descuento aplicado!' : 'Necesitas 200 pts'); }
 </script>
 </body>
 </html>
