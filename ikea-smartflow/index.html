@@ -752,10 +752,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 // ════════════════════════════════════════════
 // 1. Ajuste de Coordenadas lógicas según el flujo del plano real de la imagen
 const P = {
-  sofa:   { name: 'Sofá EKTORP', price: 399, r: 4.2, mapX: 40, mapY: 25, img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=200', desc: 'Tres plazas, beige', cat: 'Salón', rP: 40 },
-  mesa:   { name: 'Mesa INGO', price: 69, r: 4.0, mapX: 75, mapY: 25, img: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=200', desc: 'Pino macizo, 120x75 cm', cat: 'Comedor', rP: 20 },
-  comoda: { name: 'Cómoda MALM', price: 99, r: 4.5, mapX: 70, mapY: 65, img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=200', desc: '4 cajones, blanco', cat: 'Dormitorio', rP: 30 },
-  cojin:  { name: 'Cojín SANELA', price: 12, r: 4.8, mapX: 30, mapY: 65, img: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=200', desc: 'Terciopelo verde oscuro', cat: 'Decoración', rP: 10 }
+  sofa: { id: 'sofa', name: 'SÖDERHAMN', price: 2199900, mapX: 40, mapY: 54, img: 'images/prod-soderhamn.jpg', loc: 'Sala · Nivel 3' },
+  comoda: { id: 'comoda', name: 'HEMNES', price: 1299900, mapX: 175, mapY: 54, img: 'images/prod-hemnes.jpg', loc: 'Dormitorios · Nivel 3' },
+  mesa: { id: 'mesa', name: 'LACK', price: 79900, mapX: 185, mapY: 183, img: 'images/prod-lack.jpg', loc: 'Pasillo 21' },
+  cojin: { id: 'cojin', name: 'FJÄDRAR', price: 49900, mapX: 45, mapY: 183, img: 'images/prod-fjadrar.jpg', loc: 'Pasillo 8' }
 };
 
 // Punto de Entrada y Salida Fijos
@@ -996,123 +996,67 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
  * Ordena los productos del carrito reduciendo la distancia total recorrida
  */
  function calcularRutaOptima() {
-  // Obtener las llaves de los productos activos en el carrito
-  let unvisited = Object.keys(cart).filter(key => cart[key] > 0);
-  let optimizedSteps = [];
-  
-  let currentPos = { x: ENTRADA.x, y: ENTRADA.y };
+  const entrada = { x: 35, y: 229 }; // Tu posición inicial original
+  let unvisited = Object.keys(cart).filter(k => cart[k]);
+  let optimizada = [];
+  let posActual = entrada;
 
   while (unvisited.length > 0) {
-    let nearestIndex = 0;
-    let minDistance = Infinity;
+    let cercanoIdx = 0;
+    let minDist = Infinity;
 
     for (let i = 0; i < unvisited.length; i++) {
-      let prod = P[unvisited[i]];
-      let dist = Math.hypot(prod.mapX - currentPos.x, prod.mapY - currentPos.y);
-      
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearestIndex = i;
-      }
+      let p = P[unvisited[i]];
+      let d = Math.hypot(p.mapX - posActual.x, p.mapY - posActual.y);
+      if (d < minDist) { minDist = d; cercanoIdx = i; }
     }
-
-    let nextKey = unvisited.splice(nearestIndex, 1)[0];
-    optimizedSteps.push(nextKey);
-    currentPos = { x: P[nextKey].mapX, y: P[nextKey].mapY };
+    let clave = unvisited.splice(cercanoIdx, 1)[0];
+    optimizada.push(clave);
+    posActual = { x: P[clave].mapX, y: P[clave].mapY };
   }
-
-  return optimizedSteps;
+  return optimizada;
 }
 
-// CORRECCIÓN CRÍTICA: Inicializamos llamando a la función para que no esté vacío al cargar la app
-let steps = calcularRutaOptima(); 
 
 /**
  * Renderiza el mapa SVG con soporte dinámico y validación de rutas vacías
  */
-function renderMapa() {
-  // Recalcular la secuencia óptima según el estado actual del carrito
-  steps = calcularRutaOptima();
+ function renderMapa() {
+  // Calculamos la ruta dinámica basándonos en el carrito actual
+  const rutaDinamica = calcularRutaOptima();
   
-  const pathEl = document.getElementById('route-path');
-  const pinsContainer = document.getElementById('map-pins');
-  
-  if(!pinsContainer || !pathEl) return; // Validación de seguridad por si no se ha cargado el DOM por completo
-  
-  pinsContainer.innerHTML = ''; 
-
-  if (steps.length === 0) {
-    pathEl.setAttribute('d', '');
-    document.getElementById('m-inst').innerHTML = '<strong>Tu carrito está vacío.</strong><br>Agrega productos para trazar la ruta óptima por la tienda.';
+  if (!rutaDinamica.length) {
+    document.getElementById('nb-inst').textContent = "Agrega productos a tu lista";
+    hideAllStops(); // Función original de tu archivo
     return;
   }
 
-  // Construir el path string del SVG iniciando en la Entrada
-  let dParam = `M ${ENTRADA.x} ${ENTRADA.y}`;
-  
-  steps.forEach((key) => {
-    dParam += ` L ${P[key].mapX} ${P[key].mapY}`;
+  // Dibujamos la línea de ruta en el SVG
+  const pts = [{x: 35, y: 220}, ...rutaDinamica.map(id => ({x: P[id].mapX, y: P[id].mapY}))];
+  document.getElementById('route-path').setAttribute('d', pts.map((p, i) => `${i===0?'M':'L'}${p.x},${p.y}`).join(' '));
+
+  // Actualizamos los pines (stop-0, stop-1...) según la ruta optimizada
+  rutaDinamica.forEach((id, i) => {
+    if (i > 3) return; // Tu SVG original solo tiene 4 paradas definidas
+    const p = P[id];
+    const done = i < navStep;
+    const active = i === navStep;
+
+    document.getElementById('stop-' + i).setAttribute('cx', p.mapX);
+    document.getElementById('stop-' + i).setAttribute('cy', p.mapY);
+    document.getElementById('stop-' + i).setAttribute('opacity', active ? '1' : '0.5');
+    document.getElementById('stop-txt-' + i).setAttribute('x', p.mapX);
+    document.getElementById('stop-txt-' + i).setAttribute('y', p.mapY + 4);
+    document.getElementById('stop-txt-' + i).setAttribute('opacity', '1');
+    document.getElementById('stop-txt-' + i).textContent = done ? '✓' : (i + 1);
   });
 
-  if (navStep >= steps.length) {
-    dParam += ` L ${SALIDA.x} ${SALIDA.y}`;
-  }
-  
-  pathEl.setAttribute('d', dParam);
-
-  // Renderizar Pines dinámicamente
-  steps.forEach((key, index) => {
-    const prod = P[key];
-    const isCurrent = index === navStep;
-    const isVisited = index < navStep;
-
-    let pinColor = '#FFDB00'; 
-    if (isCurrent) pinColor = '#0058A3'; 
-    if (isVisited) pinColor = '#C8C8C4'; 
-
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
-    
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', prod.mapX);
-    circle.setAttribute('cy', prod.mapY);
-    circle.setAttribute('r', isCurrent ? '4' : '3');
-    circle.setAttribute('fill', pinColor);
-    circle.setAttribute('stroke', '#111110');
-    circle.setAttribute('stroke-width', '0.5');
-    
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', prod.mapX);
-    text.setAttribute('y', prod.mapY + 1.2);
-    text.setAttribute('font-size', '3.5');
-    text.setAttribute('font-family', 'sans-serif');
-    text.setAttribute('font-weight', 'bold');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', isCurrent ? '#FFF' : '#111110');
-    text.textContent = index + 1;
-
-    g.appendChild(circle);
-    g.appendChild(text);
-    pinsContainer.appendChild(g);
-  });
-
-  // Actualizar instrucciones inferiores
-  if (navStep < steps.length) {
-    const currentKey = steps[navStep];
-    document.getElementById('m-inst').innerHTML = `
-      <span style="font-size:11px; color:#6e6e6a; text-transform:uppercase; font-weight:bold;">Paso ${navStep + 1} de ${steps.length}</span>
-      <div style="font-size:16px; font-weight:bold; color:#111110; margin-top:2px;">
-        Recoger: ${P[currentKey].name}
-      </div>
-      <div style="font-size:13px; color:#0058a3; margin-top:1px;">
-        Ubicación: Sección ${P[currentKey].cat} (X: ${P[currentKey].mapX}, Y: ${P[currentKey].mapY})
-      </div>
-    `;
-  } else {
-    document.getElementById('m-inst').innerHTML = `
-      <div style="font-size:16px; font-weight:bold; color:#e8c800;">¡Todos los productos recogidos! 🎉</div>
-      <div style="font-size:13px; color:#6e6e6a;">Dirígete a la zona de cajas fijada al final del mapa.</div>
-    `;
+  // Actualizar el banner de instrucciones (nb-inst)
+  if (navStep < rutaDinamica.length) {
+    const actual = P[rutaDinamica[navStep]];
+    document.getElementById('nb-inst').textContent = "Recoger " + actual.name;
+    document.getElementById('nb-sub').textContent = actual.loc;
+    moveYou(navStep); // Mueve el punto "Tú" en el mapa
   }
 }
 
