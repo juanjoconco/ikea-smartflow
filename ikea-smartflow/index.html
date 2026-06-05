@@ -33,6 +33,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 @keyframes splPop{from{transform:scale(.65);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes fadeUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.5}}
+@keyframes dash {
+  to { stroke-dashoffset: -100; }
+}
+.map-pin { transition: all 0.3s ease; }
+.map-pin.active { transform: scale(1.3); filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); }
 
 /* ── SHELL ── */
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden;}
@@ -650,49 +655,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
       <div class="nb-info"><div class="nb-dist" id="nb-dist">—</div><div class="nb-inst" id="nb-inst">Agrega productos a tu lista</div><div class="nb-sub" id="nb-sub">para ver la ruta</div></div>
     </div>
     <div class="map-container">
-      <svg id="map-svg" viewBox="0 0 360 240" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="360" height="240" fill="#F7F7F3"/>
-        <rect x="10" y="10" width="100" height="80" rx="7" fill="#E3F0FB" stroke="#0058A3" stroke-width="1.5"/>
-        <text x="60" y="46" text-anchor="middle" font-size="8.5" fill="#0058A3" font-weight="700" font-family="system-ui">SALA</text>
-        <text x="60" y="58" text-anchor="middle" font-size="8.5" fill="#0058A3" font-family="system-ui">EXPOSICIÓN</text>
-        <text x="60" y="70" text-anchor="middle" font-size="7.5" fill="#0058A3" opacity=".7" font-family="system-ui">Nivel 2</text>
-        <rect x="125" y="10" width="100" height="80" rx="7" fill="#FFF8E1" stroke="#E8C800" stroke-width="1.5"/>
-        <text x="175" y="50" text-anchor="middle" font-size="8.5" fill="#8a6e00" font-weight="700" font-family="system-ui">DORMITORIOS</text>
-        <text x="175" y="62" text-anchor="middle" font-size="7.5" fill="#8a6e00" opacity=".7" font-family="system-ui">Nivel 1</text>
-        <rect x="240" y="10" width="110" height="80" rx="7" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
-        <text x="295" y="50" text-anchor="middle" font-size="8.5" fill="#2E7D32" font-weight="700" font-family="system-ui">COCINAS</text>
-        <rect x="10" y="105" width="340" height="16" rx="4" fill="#E8E8E4" opacity=".6"/>
-        <text x="180" y="116" text-anchor="middle" font-size="7" fill="#6E6E6A" font-family="system-ui">PASILLO PRINCIPAL</text>
-        <rect x="10" y="135" width="340" height="95" rx="7" fill="#F2F2EE" stroke="#C8C8C4" stroke-width="1.2"/>
-        <text x="180" y="168" text-anchor="middle" font-size="8.5" fill="#6E6E6A" font-weight="700" font-family="system-ui">MERCADO / AUTOSERVICIO</text>
-        <line x1="80" y1="138" x2="80" y2="228" stroke="#E0E0DC" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="150" y1="138" x2="150" y2="228" stroke="#E0E0DC" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="220" y1="138" x2="220" y2="228" stroke="#E0E0DC" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="290" y1="138" x2="290" y2="228" stroke="#E0E0DC" stroke-width="1" stroke-dasharray="3,3"/>
-        <text x="45" y="195" text-anchor="middle" font-size="6.5" fill="#9E9E9A" font-family="system-ui">P.8</text>
-        <text x="115" y="195" text-anchor="middle" font-size="6.5" fill="#9E9E9A" font-family="system-ui">P.16</text>
-        <text x="185" y="195" text-anchor="middle" font-size="6.5" fill="#9E9E9A" font-family="system-ui">P.21</text>
-        <text x="255" y="195" text-anchor="middle" font-size="6.5" fill="#9E9E9A" font-family="system-ui">P.28</text>
-        <rect x="330" y="105" width="22" height="26" rx="4" fill="#FFDB00" opacity=".9"/>
-        <text x="341" y="122" text-anchor="middle" font-size="7" fill="#333" font-weight="700" font-family="system-ui">ESC</text>
-        <rect x="10" y="220" width="50" height="18" rx="3" fill="#0058A3" opacity=".15"/>
-        <text x="35" y="232" text-anchor="middle" font-size="7" fill="#0058A3" font-weight="700" font-family="system-ui">ENTRADA</text>
-        <path id="route-path" d="" fill="none" stroke="#0058A3" stroke-width="2.5" stroke-dasharray="6,4" stroke-linecap="round" opacity=".65"/>
-        <circle id="stop-pulse-0" cx="60" cy="54" r="6" fill="#0058A3" opacity="0" class="stop-pulse"/>
-        <circle id="stop-0" cx="60" cy="54" r="9" fill="#0058A3" opacity="0"/>
-        <text id="stop-txt-0" x="60" y="58" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="system-ui" opacity="0">1</text>
-        <circle id="stop-pulse-1" cx="175" cy="54" r="6" fill="#0058A3" opacity="0" class="stop-pulse"/>
-        <circle id="stop-1" cx="175" cy="54" r="9" fill="#0058A3" opacity="0"/>
-        <text id="stop-txt-1" x="175" y="58" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="system-ui" opacity="0">2</text>
-        <circle id="stop-pulse-2" cx="185" cy="183" r="6" fill="#0058A3" opacity="0" class="stop-pulse"/>
-        <circle id="stop-2" cx="185" cy="183" r="9" fill="#0058A3" opacity="0"/>
-        <text id="stop-txt-2" x="185" y="187" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="system-ui" opacity="0">3</text>
-        <circle id="stop-pulse-3" cx="45" cy="183" r="6" fill="#0058A3" opacity="0" class="stop-pulse"/>
-        <circle id="stop-3" cx="45" cy="183" r="9" fill="#0058A3" opacity="0"/>
-        <text id="stop-txt-3" x="45" y="187" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="system-ui" opacity="0">4</text>
-        <circle id="you-pulse" cx="35" cy="229" r="5" fill="#0058A3" opacity="0" class="stop-pulse"/>
-        <circle id="you-dot" cx="35" cy="229" r="7" fill="#FFDB00" stroke="#0058A3" stroke-width="2"/>
-        <text id="you-lbl" x="35" y="233" text-anchor="middle" font-size="6.5" fill="#0058A3" font-weight="700" font-family="system-ui">Tú</text>
+      <svg id="map-svg" viewBox="0 0 100 120" style="width:100%; height:auto; background:#f7f7f3; border-radius:12px; box-shadow:inset 0 0 10px rgba(0,0,0,0.05);">
+        <rect x="5" y="5" width="90" height="35" rx="6" fill="#0058a3" fill-opacity="0.03" stroke="#0058a3" stroke-dasharray="2 2" stroke-opacity="0.2"/>
+        <text x="10" y="15" font-size="4" font-family="sans-serif" weight="bold" fill="#0058a3" opacity="0.6">1. SHOWROOM (Muebles y Camas)</text>
+      
+        <rect x="5" y="45" width="90" height="40" rx="6" fill="#ffdb00" fill-opacity="0.03" stroke="#ffdb00" stroke-dasharray="2 2" stroke-opacity="0.3"/>
+        <text x="10" y="55" font-size="4" font-family="sans-serif" weight="bold" fill="#6e6e6a" opacity="0.8">2. MARKET (Decoración y Textiles)</text>
+      
+        <rect x="5" y="90" width="90" height="25" rx="6" fill="#111110" fill-opacity="0.02" stroke="#111110" stroke-dasharray="2 2" stroke-opacity="0.1"/>
+        <text x="10" y="100" font-size="4" font-family="sans-serif" weight="bold" fill="#111110" opacity="0.5">3. AUTOSERVICIO Y CAJAS</text>
+      
+        <path d="M 15 25 L 85 25 L 85 65 L 15 65 L 15 105 L 85 105" fill="none" stroke="#e8e8e4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      
+        <circle cx="15" cy="25" r="2.5" fill="#0058a3" />
+        <text x="12" y="21" font-size="3.5" font-family="sans-serif" fill="#0058a3" font-weight="bold">Inicio</text>
+        
+        <circle cx="85" cy="105" r="2.5" fill="#e8c800" />
+        <text x="80" y="112" font-size="3.5" font-family="sans-serif" fill="#111110" font-weight="bold">Cajas</text>
+      
+        <path id="route-path" d="" fill="none" stroke="#0058A3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 3" style="animation: dash 30s linear infinite;"/>
+        
+        <g id="map-pins"></g>
       </svg>
     </div>
     <div class="step-list" id="step-list"></div>
@@ -767,41 +750,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 //   prod-fjadrar.jpg     → foto del cojín FJÄDRAR
 // Tamaño recomendado: 400×400px, fondo blanco o neutro
 // ════════════════════════════════════════════
-const P={
-  sofa:{id:'sofa',name:'SÖDERHAMN',desc:'Sofá 3 puestos, Viarp beige',price:2199900,
-    img:'images/prod-soderhamn.jpg',
-    loc:'Sala de exposición · Nivel 2',size:'274×99×83 cm',color:'Viarp beige',
-    mapX:60,mapY:54,
-    svg:`<svg viewBox="0 0 24 24" stroke="#0058A3" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5H2z"/><path d="M4 18v2M20 18v2M2 16h20"/></svg>`,
-    nav:{dist:'~50m',inst:'Sigue recto a Sala Exposición',sub:'Planta 2 · Ambiente Salas',dir:'up'}},
-  comoda:{id:'comoda',name:'HEMNES',desc:'Cómoda 8 cajones, blanco tinte',price:1299900,
-    img:'images/prod-hemnes.jpg',
-    loc:'Dormitorios · Nivel 1',size:'160×37×96 cm',color:'Blanco tinte',
-    mapX:175,mapY:54,
-    svg:`<svg viewBox="0 0 24 24" stroke="#0058A3" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/><line x1="10" y1="6" x2="14" y2="6"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>`,
-    nav:{dist:'~80m',inst:'Dobla a la derecha en el pasillo',sub:'Dormitorios · Nivel 1',dir:'right'}},
-  mesa:{id:'mesa',name:'LACK',desc:'Mesa auxiliar, negro-marrón',price:79900,
-    img:'images/prod-lack.jpg',
-    loc:'Mercado Muebles · Pasillo 21, E3',size:'55×55×45 cm',color:'Negro-marrón',
-    mapX:185,mapY:183,
-    svg:`<svg viewBox="0 0 24 24" stroke="#0058A3" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v13M19 8v13"/></svg>`,
-    nav:{dist:'~120m',inst:'Baja al Mercado · Pasillo 21',sub:'Estante 3 · Nivel inferior',dir:'down'}},
-  cojin:{id:'cojin',name:'FJÄDRAR',desc:'Cojín interior, gris',price:49900,
-    img:'images/prod-fjadrar.jpg',
-    loc:'Accesorios · Pasillo 8',size:'50×50 cm',color:'Gris',
-    mapX:45,mapY:183,
-    svg:`<svg viewBox="0 0 24 24" stroke="#0058A3" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`,
-    nav:{dist:'~140m',inst:'Dobla a la izquierda · Pasillo 8',sub:'Accesorios · Zona textil',dir:'left'}}
+// 1. Ajuste de Coordenadas lógicas según el flujo del plano real de la imagen
+const P = {
+  sofa:   { name: 'Sofá EKTORP', price: 399, r: 4.2, mapX: 40, mapY: 25, img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=200', desc: 'Tres plazas, beige', cat: 'Salón', rP: 40 },
+  mesa:   { name: 'Mesa INGO', price: 69, r: 4.0, mapX: 75, mapY: 25, img: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=200', desc: 'Pino macizo, 120x75 cm', cat: 'Comedor', rP: 20 },
+  comoda: { name: 'Cómoda MALM', price: 99, r: 4.5, mapX: 70, mapY: 65, img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=200', desc: '4 cajones, blanco', cat: 'Dormitorio', rP: 30 },
+  cojin:  { name: 'Cojín SANELA', price: 12, r: 4.8, mapX: 30, mapY: 65, img: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=200', desc: 'Terciopelo verde oscuro', cat: 'Decoración', rP: 10 }
 };
 
-const QR_MAP={'IKEA:sofa':'sofa','IKEA:mesa':'mesa','IKEA:comoda':'comoda','IKEA:cojin':'cojin','sofa':'sofa','mesa':'mesa','comoda':'comoda','cojin':'cojin'};
-const ORDER=['home','scanner','lista','mapa','reto'];
-const ROUTE=['sofa','comoda','mesa','cojin'];
-const YOU_POS=[{x:35,y:229},{x:60,y:72},{x:175,y:72},{x:185,y:165},{x:45,y:165}];
+// Punto de Entrada y Salida Fijos
+const ENTRADA = { x: 15, y: 25 };
+const SALIDA = { x: 85, y: 105 };
 
-let cart={},navStep=0,done={},rPts=120,rN=3,cur='home';
-let html5Qr=null,qrActive=false,pendingQrId=null,qrStarting=false;
-
+// Variable global para almacenar la secuencia calculada dinámicamente
+let steps = [];
 // ── SPLASH ──
 window.addEventListener('load',()=>{
   renderHomeProds();renderDPList();
@@ -1031,94 +993,156 @@ function updTotal(){document.getElementById('ltotal').textContent=fmt(Object.val
 function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('nbadge');b.textContent=n;b.style.display=n>0?'flex':'none';}
 
 // ── MAPA ──
-function renderMapa(){
-  const steps=ROUTE.filter(k=>cart[k]);
-  if(!steps.length){
-    setBanner('','<svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>','Agrega productos a tu lista','para activar la navegación','');
-    hideAllStops();
-    document.getElementById('step-list').innerHTML='<div style="padding:18px;text-align:center;color:var(--g4);font-size:13px;">Agrega productos para ver tu ruta</div>';
-    moveYou(0);return;
+/**
+ * Algoritmo Greedy (Nearest Neighbor) para optimizar la ruta dinámicamente
+ * Ordena los productos del carrito reduciendo la distancia total recorrida
+ */
+ function calcularRutaOptima() {
+  // Obtener las llaves de los productos que están actualmente en el carrito
+  let unvisited = Object.keys(cart).filter(key => cart[key] > 0);
+  let optimizedSteps = [];
+  
+  let currentPos = { x: ENTRADA.x, y: ENTRADA.y };
+
+  while (unvisited.length > 0) {
+    let nearestIndex = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < unvisited.length; i++) {
+      let prod = P[unvisited[i]];
+      // Distancia Euclidiana estándar
+      let dist = Math.hypot(prod.mapX - currentPos.x, prod.mapY - currentPos.y);
+      
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearestIndex = i;
+      }
+    }
+
+    // Seleccionamos el más cercano, actualizamos posición de control y repetimos
+    let nextKey = unvisited.splice(nearestIndex, 1)[0];
+    optimizedSteps.push(nextKey);
+    currentPos = { x: P[nextKey].mapX, y: P[nextKey].mapY };
   }
-  drawRoute(steps);
-  steps.forEach((id,i)=>{
-    const p=P[id],done=i<navStep,active=i===navStep;
-    const sx=p.mapX,sy=p.mapY;
-    const setA=(prefix,attr,val)=>{const e=document.getElementById(prefix+i);if(e)e.setAttribute(attr,val);};
-    setA('stop-','cx',sx);setA('stop-','cy',sy);
-    setA('stop-txt-','x',sx);setA('stop-txt-','y',sy+4);
-    setA('stop-pulse-','cx',sx);setA('stop-pulse-','cy',sy);
-    document.getElementById('stop-'+i).setAttribute('opacity',done?'0.3':active?'1':'0.5');
-    document.getElementById('stop-'+i).setAttribute('fill',done?'#C8C8C4':'#0058A3');
-    document.getElementById('stop-txt-'+i).setAttribute('opacity','1');
-    document.getElementById('stop-txt-'+i).textContent=done?'✓':(i+1);
-    document.getElementById('stop-pulse-'+i).setAttribute('opacity',active&&!done?'0.6':'0');
+
+  return optimizedSteps;
+}
+
+/**
+ * Renderiza el mapa SVG dibujando los nodos dinámicos y la línea de ruta optimizada
+ */
+function renderMapa() {
+  // 1. Recalcular la secuencia óptima según el estado actual del carrito
+  steps = calcularRutaOptima();
+  
+  const pathEl = document.getElementById('route-path');
+  const pinsContainer = document.getElementById('map-pins');
+  
+  pinsContainer.innerHTML = ''; // Limpiar pines anteriores
+
+  if (steps.length === 0) {
+    pathEl.setAttribute('d', '');
+    document.getElementById('m-inst').innerHTML = '<strong>Tu carrito está vacío.</strong><br>Agrega productos para trazar la ruta óptima por la tienda.';
+    return;
+  }
+
+  // 2. Construir el path string del SVG iniciando en la Entrada
+  let dParam = `M ${ENTRADA.x} ${ENTRADA.y}`;
+  
+  // Agregar cada nodo de producto optimizado al trayecto
+  steps.forEach((key) => {
+    dParam += ` L ${P[key].mapX} ${P[key].mapY}`;
   });
-  for(let i=steps.length;i<4;i++){
-    ['stop-','stop-txt-','stop-pulse-'].forEach(px=>{const e=document.getElementById(px+i);if(e)e.setAttribute('opacity','0');});
+
+  // Si ya se visitaron todos los productos y se avanzó al final, conectar a la salida
+  if (navStep >= steps.length) {
+    dParam += ` L ${SALIDA.x} ${SALIDA.y}`;
   }
-  moveYou(navStep);
-  if(navStep>=steps.length){
-    setBanner('done','<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>','¡Ruta completada!','Todos los productos recogidos 🎉','');
-    document.getElementById('nav-banner').className='nav-banner done';
-    document.getElementById('btn-next').disabled=true;
-    document.getElementById('mapa-loc-txt').textContent='Ruta finalizada';
+  
+  pathEl.setAttribute('d', dParam);
+
+  // 3. Renderizar los Pines de los productos en el mapa
+  steps.forEach((key, index) => {
+    const prod = P[key];
+    const isCurrent = index === navStep;
+    const isVisited = index < navStep;
+
+    // Color del pin según su estado en la navegación
+    let pinColor = '#FFDB00'; // Pendiente (Amarillo IKEA)
+    if (isCurrent) pinColor = '#0058A3'; // Siguiente producto a recoger (Azul)
+    if (isVisited) pinColor = '#C8C8C4'; // Ya recogido (Gris)
+
+    // Crear elemento de grupo para el Pin
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
+    
+    // Círculo base del Pin
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', prod.mapX);
+    circle.setAttribute('cy', prod.mapY);
+    circle.setAttribute('r', isCurrent ? '4' : '3');
+    circle.setAttribute('fill', pinColor);
+    circle.setAttribute('stroke', '#111110');
+    circle.setAttribute('stroke-width', '0.5');
+    
+    // Número indicador de orden en la ruta optimizada
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', prod.mapX);
+    text.setAttribute('y', prod.mapY + 1.2);
+    text.setAttribute('font-size', '3.5');
+    text.setAttribute('font-family', 'sans-serif');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', isCurrent ? '#FFF' : '#111110');
+    text.textContent = index + 1;
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    pinsContainer.appendChild(g);
+  });
+
+  // 4. Actualizar instrucciones dinámicas en la interfaz inferior
+  if (navStep < steps.length) {
+    const currentKey = steps[navStep];
+    document.getElementById('m-inst').innerHTML = `
+      <span style="font-size:11px; color:#6e6e6a; text-transform:uppercase; font-weight:bold;">Paso ${navStep + 1} de ${steps.length}</span>
+      <div style="font-size:16px; font-weight:bold; color:#111110; margin-top:2px;">
+        Recoger: ${P[currentKey].name}
+      </div>
+      <div style="font-size:13px; color:#0058a3; margin-top:1px;">
+        Ubicación: Sección ${P[currentKey].cat} (X: ${P[currentKey].mapX}, Y: ${P[currentKey].mapY})
+      </div>
+    `;
   } else {
-    const p=P[steps[navStep]];
-    setBanner('active',getDirSvg(p.nav.dir),p.nav.inst,p.nav.sub,p.nav.dist);
-    document.getElementById('nav-banner').className='nav-banner';
-    document.getElementById('btn-next').disabled=false;
-    document.getElementById('mapa-loc-txt').textContent='Navegando hacia '+p.name;
+    document.getElementById('m-inst').innerHTML = `
+      <div style="font-size:16px; font-weight:bold; color:#e8c800;">¡Todos los productos recogidos! 🎉</div>
+      <div style="font-size:13px; color:#6e6e6a;">Dirígete a la zona de cajas fijada al final del mapa.</div>
+    `;
   }
-  document.getElementById('step-list').innerHTML=steps.map((id,i)=>{
-    const p=P[id],isDone=i<navStep,isActive=i===navStep;
-    return `<div class="step-row${isDone?' done-step':isActive?' active-step':''}">
-      <div class="step-num${isDone?' done':isActive?' active':''}">${isDone?`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`:(i+1)}</div>
-      <div class="step-inf"><div class="step-nm" style="${isDone?'text-decoration:line-through;color:var(--g4);':''}">${p.name}</div><div class="step-det">${p.loc}</div></div>
-      <div class="step-dist" style="${isDone?'color:var(--g3);':''}">${isDone?'✓':p.nav.dist}</div>
-      <div class="step-ico"><img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<div style=\\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;\\">${p.svg.replace(/"/g,"'")}</div>'"/></div>
-    </div>`;
-  }).join('');
 }
-function getDirSvg(d){
-  return {
-    up:`<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
-    right:`<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
-    down:`<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
-    left:`<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`
-  }[d]||'';
-}
-function setBanner(type,iconSvg,inst,sub,dist){
-  document.getElementById('nb-arrow').innerHTML=iconSvg;
-  document.getElementById('nb-inst').textContent=inst;
-  document.getElementById('nb-sub').textContent=sub;
-  document.getElementById('nb-dist').textContent=dist;
-}
-function hideAllStops(){
-  for(let i=0;i<4;i++)['stop-','stop-txt-','stop-pulse-'].forEach(px=>{const e=document.getElementById(px+i);if(e)e.setAttribute('opacity','0');});
-  document.getElementById('route-path').setAttribute('d','');
-}
-function drawRoute(steps){
-  const pts=[{x:35,y:220}];steps.forEach(id=>pts.push({x:P[id].mapX,y:P[id].mapY}));
-  document.getElementById('route-path').setAttribute('d',pts.map((p,i)=>`${i===0?'M':'L'}${p.x},${p.y}`).join(' '));
-}
-function moveYou(step){
-  const pos=YOU_POS[Math.min(step,YOU_POS.length-1)];
-  const dot=document.getElementById('you-dot'),lbl=document.getElementById('you-lbl'),pulse=document.getElementById('you-pulse');
-  dot.style.transition='cx .8s cubic-bezier(.4,0,.2,1),cy .8s cubic-bezier(.4,0,.2,1)';
-  dot.setAttribute('cx',pos.x);dot.setAttribute('cy',pos.y);
-  lbl.setAttribute('x',pos.x);lbl.setAttribute('y',pos.y+4);
-  pulse.setAttribute('cx',pos.x);pulse.setAttribute('cy',pos.y);
-}
-function nextStep(){
-  const steps=ROUTE.filter(k=>cart[k]);
-  if(!steps.length){toast('Agrega productos primero');return;}
-  if(navStep>=steps.length){toast('¡Ruta ya completada!');return;}
-  if(navigator.vibrate)navigator.vibrate([30,20,50]);
+
+/**
+ * Modificación en el avance de navegación para soportar el arreglo dinámico
+ */
+function nextNav() {
+  if (!steps.length) {
+    toast('Agrega productos al carrito primero');
+    return;
+  }
+  if (navStep >= steps.length) {
+    toast('¡Ya estás en la zona de salida!');
+    return;
+  }
+  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+  
   navStep++;
-  if(navStep<steps.length)toast('→ '+P[steps[navStep]].name);
+  if (navStep < steps.length) {
+    toast('Siguiente parada: → ' + P[steps[navStep]].name);
+  } else {
+    toast('¡Ruta completada! Dirígete a Cajas.');
+  }
   renderMapa();
 }
-function resetNav(){navStep=0;renderMapa();toast('Ruta reiniciada desde la entrada');}
 
 // ── RETO ──
 function completeC(id,pts,name){
