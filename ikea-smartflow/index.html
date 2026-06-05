@@ -736,78 +736,161 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 
 <script>
 // ============================================================================
-// DATOS DE PRODUCTOS CON COORDENADAS FIJAS EN EL LABERINTO REAL (1 al 8)
+// 1. VARIABLES DE ESTADO GLOBAL (Obligatorias para el Shell SPA)
+// ============================================================================
+let cur = 'home';
+const ORDER = ['home', 'scanner', 'lista', 'mapa', 'reto'];
+let navStep = 0;
+let cart = {};
+let done = {};
+let rPts = 120;
+let rN = 3;
+let html5Qr = null;
+let qrActive = false;
+let qrStarting = false;
+let pendingQrId = null;
+
+// Diccionario de equivalencias para lectura del escáner
+const QR_MAP = {
+  "sofa": "sofa",
+  "comoda": "comoda",
+  "mesa": "mesa",
+  "cojin": "cojin"
+};
+
+// ============================================================================
+// 2. MAQUETA DE PRODUCTOS CON ASIGNACIÓN DE SECCIONES REALES (1 al 8)
 // ============================================================================
 const P = {
   sofa: { 
     id: 'sofa', 
     name: 'SÖDERHAMN', 
     price: 2199900, 
-    mapX: 75, mapY: 55, // Ubicado en Sección 2: Sala
+    mapX: 75, mapY: 55, // Sección 2: Sala
     seccion: 2,
     img: 'images/prod-soderhamn.jpg', 
-    loc: 'Sala · Sección 2' 
+    loc: 'Sala · Sección 2',
+    desc: 'Sofá de 3 plazas'
   },
   mesa: { 
     id: 'mesa', 
     name: 'LACK', 
     price: 79900, 
-    mapX: 175, mapY: 85, // Ubicado en Sección 4: Oficina y escritorios
+    mapX: 175, mapY: 85, // Sección 4: Oficina y escritorios
     seccion: 4,
     img: 'images/prod-lack.jpg', 
-    loc: 'Oficina · Sección 4' 
+    loc: 'Oficina · Sección 4',
+    desc: 'Mesa auxiliar básica'
   },
   comoda: { 
     id: 'comoda', 
     name: 'HEMNES', 
     price: 1299900, 
-    mapX: 115, mapY: 115, // Ubicado en Sección 7: Dormitorio
+    mapX: 115, mapY: 115, // Sección 7: Dormitorio
     seccion: 7,
     img: 'images/prod-hemnes.jpg', 
-    loc: 'Dormitorio · Sección 7' 
+    loc: 'Dormitorio · Sección 7',
+    desc: 'Cómoda de 8 cajones'
   },
   cojin: { 
     id: 'cojin', 
     name: 'FJÄDRAR', 
     price: 49900, 
-    mapX: 75, mapY: 175, // Ubicado en Sección 8: Clósets y armarios
+    mapX: 75, mapY: 175, // Sección 8: Clósets y armarios
     seccion: 8,
     img: 'images/prod-fjadrar.jpg', 
-    loc: 'Clósets · Sección 8' 
+    loc: 'Clósets · Sección 8',
+    desc: 'Cojín interior plumas'
   }
 };
 
-// Puntos de control del laberinto del plano (Segmentos del pasillo de la tienda)
-const NODOS_MAPA = [
-  { x: 25, y: 55 },   // [0] Entrada / Sección 1
-  { x: 75, y: 55 },   // [1] Sección 2: Sala
-  { x: 75, y: 25 },   // [2] Vuelta hacia Estanterías
-  { x: 115, y: 25 },  // [3] Sección 3: Estanterías TV
-  { x: 115, y: 85 },  // [4] Bajada a Oficina
-  { x: 175, y: 85 },  // [5] Sección 4: Oficina / Escritorios
-  { x: 175, y: 145 }, // [6] Sección 5: Cocina
-  { x: 115, y: 145 }, // [7] Sección 6: Comedor
-  { x: 115, y: 115 }, // [8] Sección 7: Dormitorio
-  { x: 75, y: 115 },  // [9] Pasillo conector a Clósets
-  { x: 75, y: 175 },  // [10] Sección 8: Clósets y armarios
-  { x: 25, y: 175 },  // [11] Salida de Clósets / Atajo
-  { x: 25, y: 200 },  // [12] Pasillo final de Cajas
-  { x: 195, y: 200 }  // [13] Cajas / Salida final
-];
+// Puntos de anclaje de la infraestructura (Coordenadas de los pasillos)
+const ENTRADA = { x: 25, y: 55 };
+const SALIDA = { x: 195, y: 200 };
 
-/**
- * Ordena los productos del carrito basándose estrictamente en el orden 
- * de flujo natural de la tienda (Secuencial del pasillo 1 al 8)
- */
+// ============================================================================
+// 3. EVENTO DE CARGA INICIAL (Ciclo de vida del Splash Screen)
+// ============================================================================
+window.addEventListener('load', () => {
+  renderHomeProds();
+  renderDPList();
+  
+  // Apagar la pantalla de carga de manera segura
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    if (s) {
+      s.classList.add('hide');
+      setTimeout(() => s.remove(), 600);
+    }
+  }, 1800);
+  updBar('home');
+});
+
+// ============================================================================
+// 4. CONTROLADOR DE ENRUTAMIENTO (Navegación Interactiva SPA)
+// ============================================================================
+function goTo(id) {
+  if (id === cur) return;
+  const cs = document.getElementById('screen-' + cur);
+  const ns = document.getElementById('screen-' + id);
+  if (!cs || !ns) return;
+
+  const goR = ORDER.indexOf(id) >= ORDER.indexOf(cur);
+  cs.classList.remove('active');
+  ns.style.transform = goR ? 'translateX(100%)' : 'translateX(-100%)';
+  ns.style.transition = 'none';
+  ns.classList.add('active');
+  
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ns.style.transition = '';
+    ns.style.transform = 'translateX(0)';
+    cs.style.transform = goR ? 'translateX(-28%)' : 'translateX(28%)';
+  }));
+  
+  setTimeout(() => {
+    cs.classList.remove('active');
+    cs.style.transform = '';
+    cs.style.transition = '';
+  }, 380);
+  
+  const oldNav = document.getElementById('nav-' + cur);
+  const newNav = document.getElementById('nav-' + id);
+  if (oldNav) oldNav.classList.remove('active');
+  if (newNav) newNav.classList.add('active');
+  
+  cur = id;
+  updBar(id);
+  
+  // Encapsulamiento seguro por vista activa
+  try {
+    if (id === 'lista') renderLista();
+    if (id === 'mapa') renderMapa();
+    if (id === 'scanner') startScanner();
+    else stopScanner();
+  } catch(e) {
+    console.error("Fallo controlado en cambio de pestaña:", e);
+  }
+}
+
+function updBar(id) {
+  const w = 100 / 5;
+  const idx = ORDER.indexOf(id);
+  const b = document.getElementById('nbar');
+  if (b && idx !== -1) {
+    b.style.left = `${w * idx}%`;
+    b.style.width = `${w}%`;
+  }
+}
+
+// ============================================================================
+// 5. CÁLCULO DE NAVEGACIÓN Y ENRUTAMIENTO DINÁMICO POR PASILLOS
+// ============================================================================
 function calcularRutaOptima() {
   return Object.keys(cart)
-    .filter(k => cart[k])
+    .filter(k => cart[k] && cart[k].qty > 0)
     .sort((a, b) => P[a].seccion - P[b].seccion);
 }
 
-/**
- * Renderiza el mapa replicando la ruta por pasillos reales
- */
 function renderMapa() {
   const rutaDinamica = calcularRutaOptima();
   const pathEl = document.getElementById('route-path');
@@ -815,9 +898,11 @@ function renderMapa() {
   const instEl = document.getElementById('nb-inst');
   const subEl = document.getElementById('nb-sub');
   const distEl = document.getElementById('nb-dist');
+  const txtLoc = document.getElementById('mapa-loc-txt');
   
-  if (!pathEl || !pinsContainer) return;
+  if (!pathEl || !pinsContainer) return; 
 
+  if (txtLoc) txtLoc.textContent = "Área de exhibición activa";
   pinsContainer.innerHTML = '';
 
   if (!rutaDinamica.length) {
@@ -828,28 +913,20 @@ function renderMapa() {
     return;
   }
 
-  // Ajustar paso de navegación seguro
   if (navStep > rutaDinamica.length) navStep = rutaDinamica.length;
 
-  // 1. CONSTRUIR EL TRAZO SEGUIDOR DE PASILLOS
-  // Buscamos cuál es el producto más lejano en la ruta que el usuario debe recoger
+  // Evaluar cuál es el punto secuencial más lejano del carrito
   let seccionMaxima = 1;
-  rutaDinamica.forEach((id, index) => {
-    // Si no se ha recogido o es el actual, extendemos el camino hasta este punto
-    if (P[id].seccion > seccionMaxima) {
-      seccionMaxima = P[id].seccion;
-    }
+  rutaDinamica.forEach((id) => {
+    if (P[id].seccion > seccionMaxima) seccionMaxima = P[id].seccion;
   });
   
-  // Si ya recogió todo, el camino debe llegar hasta las Cajas (último nodo)
   if (navStep >= rutaDinamica.length) {
-    seccionMaxima = 10; // Fuerza recorrer todo el laberinto hasta el final
+    seccionMaxima = 10; // Redirigir el trazo hacia las cajas al culminar
   }
 
-  // Dibujamos el Path dinámico uniendo los nodos fijos de los pasillos necesarios
+  // Trazar el camino sinuoso respetando los muros del SVG
   let dParam = "M 25 55";
-  
-  // Mapeo adaptativo: según la sección máxima que necesitemos visitar, añadimos los codos del pasillo
   if (seccionMaxima >= 2) dParam += " L 75 55";
   if (seccionMaxima >= 3) dParam += " L 75 25 L 115 25";
   if (seccionMaxima >= 4) dParam += " L 115 85 L 175 85";
@@ -861,32 +938,29 @@ function renderMapa() {
 
   pathEl.setAttribute('d', dParam);
 
-  // 2. RENDERIZAR LOS PINES EN SU POSICIÓN FÍSICA INMUTABLE
+  // Inyectar los pines en sus coordenadas espaciales inmutables
   rutaDinamica.forEach((id, i) => {
     const p = P[id];
     const isCurrent = i === navStep;
     const isVisited = i < navStep;
 
-    // Color corporativo IKEA basado en estado
-    let fillPin = '#FFDB00'; // Amarillo para pendientes
+    let fillPin = '#FFDB00'; 
     let strokePin = '#0f2c59';
     let textColor = '#000000';
 
     if (isCurrent) {
-      fillPin = '#0058A3'; // Azul IKEA para el objetivo actual
+      fillPin = '#0058A3'; 
       strokePin = '#FFFFFF';
       textColor = '#FFFFFF';
     } else if (isVisited) {
-      fillPin = '#1d447a'; // Integrado al fondo si ya se visitó
+      fillPin = '#1d447a'; 
       strokePin = '#0f2c59';
       textColor = '#6E6E6A';
     }
 
-    // Contenedor del grupo pin
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
     
-    // Círculo exterior decorativo para el objetivo actual
     if (isCurrent) {
       const pulseCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       pulseCircle.setAttribute('cx', p.mapX);
@@ -922,7 +996,7 @@ function renderMapa() {
     pinsContainer.appendChild(g);
   });
 
-  // 3. ACTUALIZAR BANNER TEXTUAL DE INSTRUCCIONES
+  // Actualizar los paneles inferiores de información instructiva
   if (navStep < rutaDinamica.length) {
     const actual = P[rutaDinamica[navStep]];
     if (instEl) instEl.textContent = `Recoger: ${actual.name}`;
@@ -933,6 +1007,322 @@ function renderMapa() {
     if (subEl) subEl.textContent = "Dirígete a la zona de cajas y salida.";
     if (distEl) distEl.textContent = "FIN";
   }
+}
+
+function nextStep() {
+  const ruta = calcularRutaOptima();
+  if (!ruta.length) { toast('Tu lista está vacía'); return; }
+  if (navStep >= ruta.length) { toast('¡Ruta completada! Dirígete a Cajas.'); return; }
+  
+  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
+  navStep++;
+  renderMapa();
+}
+
+function resetNav() {
+  navStep = 0;
+  renderMapa();
+  toast('Ruta de recolección reiniciada');
+}
+
+// ============================================================================
+// 6. CONTROLADOR HARDWARE DEL LECTOR DE CÁMARA QR
+// ============================================================================
+function startScanner() {
+  if (qrActive || qrStarting) return;
+  qrStarting = true;
+  setQrStatus('', 'Iniciando cámara…');
+
+  if (html5Qr) {
+    try { html5Qr.clear(); } catch(e) {}
+  }
+  
+  html5Qr = new Html5Qrcode("qr-reader");
+  const config = {
+    fps: 15,
+    qrbox: (w, h) => { const m = Math.min(w, h); const s = Math.floor(m * 0.7); return { width: s, height: s }; },
+    aspectRatio: 1.0
+  };
+
+  html5Qr.start(
+    { facingMode: "environment" },
+    config,
+    onQrSuccess,
+    () => {}
+  ).then(() => {
+    qrActive = true;
+    qrStarting = false;
+    setQrStatus('on', 'Buscando códigos de barra o QR…');
+  }).catch(err => {
+    qrStarting = false;
+    setQrStatus('err', 'Cámara no disponible');
+    console.error(err);
+  });
+}
+
+function stopScanner() {
+  if (!html5Qr || !qrActive) return;
+  html5Qr.stop().then(() => {
+    try { html5Qr.clear(); } catch(e) {}
+    qrActive = false;
+    qrStarting = false;
+    setQrStatus('', '—');
+  }).catch(() => {
+    qrActive = false;
+    qrStarting = false;
+  });
+}
+
+function onQrSuccess(text) {
+  const pid = QR_MAP[text.trim()];
+  if (!pid) { toast('Código no mapeado: ' + text.substring(0, 15)); return; }
+  if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
+  
+  const wrap = document.getElementById('qr-wrap');
+  if (wrap) {
+    wrap.classList.remove('flash');
+    void wrap.offsetWidth;
+    wrap.classList.add('flash');
+  }
+  showQrResult(pid);
+}
+
+function setQrStatus(cls, msg) {
+  const dot = document.getElementById('qr-dot');
+  const txt = document.getElementById('qr-txt');
+  if (dot) dot.className = 'qr-dot' + (cls ? ' ' : '') + cls;
+  if (txt) txt.textContent = msg;
+}
+
+function showQrResult(id) {
+  const p = P[id]; if (!p) return;
+  pendingQrId = id;
+  
+  const icon = document.getElementById('qrr-icon');
+  if (icon) icon.innerHTML = `<img src="${p.img}" alt="" onerror="this.remove()"/>`;
+  
+  const nm = document.getElementById('qrr-nm');
+  const pr = document.getElementById('qrr-pr');
+  if (nm) nm.textContent = p.name;
+  if (pr) pr.textContent = fmt(p.price);
+  
+  const res = document.getElementById('qr-result');
+  if (res) {
+    res.classList.add('show');
+    setTimeout(() => res.classList.remove('show'), 5000);
+  }
+}
+
+function addFromQR() {
+  if (!pendingQrId) return;
+  const res = document.getElementById('qr-result');
+  if (res) res.classList.remove('show');
+  doAddProd(pendingQrId);
+  pendingQrId = null;
+}
+
+function scanProd(id) {
+  if (cart[id]) { toast(P[id].name + ' ya está en tu lista'); return; }
+  doAddProd(id);
+}
+
+function doAddProd(id) {
+  const p = P[id];
+  cart[id] = { product: p, qty: 1 };
+  updBadge();
+  markDP(id);
+  toast(p.name + ' guardado');
+  setTimeout(() => openModal(id), 350);
+}
+
+function markDP(id) {
+  const el = document.getElementById('dp-' + id);
+  const db = document.getElementById('db-' + id);
+  if (el) el.classList.add('sc');
+  if (db) {
+    db.className = 'dp-act dp-chk';
+    db.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+}
+
+// ============================================================================
+// 7. COMPONENTES RENDERIZADORES DE INTERFAZ E IMÁGENES
+// ============================================================================
+function imgOrSvg(p) {
+  return `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.remove()">`;
+}
+
+function renderHomeProds() {
+  const el = document.getElementById('home-prod-list');
+  if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `
+    <div class="prod-card" onclick="openModal('${p.id}')">
+      <div class="prod-img-box">${imgOrSvg(p)}</div>
+      <div class="prod-inf"><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></div>
+      <div class="prod-price">${fmt(p.price)}</div>
+      <div class="prod-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>`).join('');
+}
+
+function renderDPList() {
+  const el = document.getElementById('dp-list');
+  if (!el) return;
+  el.innerHTML = Object.values(P).map(p => `
+    <div class="dp-item" id="dp-${p.id}" onclick="scanProd('${p.id}')">
+      <div class="dp-icon">${imgOrSvg(p)}</div>
+      <div class="dp-inf"><div class="dp-nm">${p.name}</div><div class="dp-sub">${p.loc}</div></div>
+      <div class="dp-pr">${fmt(p.price)}</div>
+      <div class="dp-act dp-add" id="db-${p.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+    </div>`).join('');
+}
+
+// ============================================================================
+// 8. LOGICA DE NÚCLEO PARA ELEMENTOS MODALES
+// ============================================================================
+function openModal(id) {
+  const p = P[id]; if (!p) return;
+  const inC = !!cart[id];
+  const mbody = document.getElementById('mbody');
+  if (!mbody) return;
+  
+  mbody.innerHTML = `
+    <div class="mtitle">${p.name}</div>
+    <div class="msub">${p.desc}</div>
+    <div class="mprev">
+      <img class="mprev-img" src="${p.img}" alt="" onerror="this.remove()"/>
+      <div class="mprev-info"><div class="mpn">${p.name}</div><div class="mpp">${fmt(p.price)}</div></div>
+    </div>
+    <div class="irow"><div class="il">Ubicación</div><div class="iv">${p.loc}</div></div>
+    <div class="irow"><div class="il">Disponibilidad</div><div class="iv ok">En stock ✓</div></div>
+    <div class="mbtns">
+      ${inC ? '<button class="btn-outline" onclick="closeModal()">✓ Ya está en tu lista</button>'
+           : `<button class="btn-blue" onclick="addM('${id}')">Guardar en mi lista</button>`}
+      <button class="btn-outline" onclick="closeModal();goTo('mapa')">Ver camino en mapa →</button>
+    </div>`;
+  
+  const ov = document.getElementById('overlay');
+  if (ov) ov.classList.add('show');
+}
+
+function addM(id) {
+  cart[id] = { product: P[id], qty: 1 };
+  updBadge();
+  toast(P[id].name + ' agregado');
+  closeModal();
+  markDP(id);
+}
+function closeModal() { const ov = document.getElementById('overlay'); if (ov) ov.classList.remove('show'); }
+function maybeClose(e) { if (e.target.id === 'overlay') closeModal(); }
+
+// ============================================================================
+// 9. PANEL GESTOR DE MI CARRITO DE COMPRAS
+// ============================================================================
+function renderLista() {
+  const keys = Object.keys(cart).filter(k => cart[k] && cart[k].qty > 0);
+  const lcnt = document.getElementById('lcnt');
+  if (lcnt) lcnt.textContent = keys.length + ' producto' + (keys.length !== 1 ? 's' : '') + ' guardado' + (keys.length !== 1 ? 's' : '');
+  
+  const lempty = document.getElementById('lempty');
+  const lcont = document.getElementById('lcont');
+  
+  if (!keys.length) {
+    if (lempty) lempty.style.display = 'flex';
+    if (lcont) lcont.style.display = 'none';
+    return;
+  }
+  
+  if (lempty) lempty.style.display = 'none';
+  if (lcont) lcont.style.display = 'flex';
+  
+  const litems = document.getElementById('litems');
+  if (litems) {
+    litems.innerHTML = keys.map((k, i) => {
+      const { product: p, qty } = cart[k];
+      return `<div class="l-item" style="animation-delay:${i * .05}s">
+        <div class="l-icon">${imgOrSvg(p)}</div>
+        <div class="l-inf"><div class="l-nm">${p.name}</div><div class="l-sub">${p.desc}</div>
+          <div class="qrow">
+            <button class="qb" onclick="cQ('${k}',-1)"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="qv">${qty}</div>
+            <button class="qb" onclick="cQ('${k}',1)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="l-pr">${fmt(p.price * qty)}</div>
+          </div>
+        </div>
+        <button class="rmbtn" onclick="rmI('${k}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>`;
+    }).join('');
+  }
+  updTotal();
+}
+
+function cQ(id, d) { if (!cart[id]) return; cart[id].qty = Math.max(1, cart[id].qty + d); renderLista(); }
+function rmI(id) { delete cart[id]; updBadge(); renderLista(); }
+function updTotal() { 
+  const tot = document.getElementById('ltotal');
+  if (tot) tot.textContent = fmt(Object.values(cart).reduce((s, { product: p, qty }) => s + (p.price * qty), 0)); 
+}
+function updBadge() {
+  const n = Object.keys(cart).filter(k => cart[k] && cart[k].qty > 0).length;
+  const b = document.getElementById('nbadge');
+  if (b) {
+    b.textContent = n;
+    b.style.display = n > 0 ? 'flex' : 'none';
+  }
+}
+
+// ============================================================================
+// 10. MÓDULO GAMIFICATION (IKEA Hunt)
+// ============================================================================
+function completeC(id, pts, name) {
+  if (done[id]) return;
+  done[id] = true;
+  rPts += pts;
+  rN = Math.min(rN + 1, 10);
+  
+  const n = id.slice(-1);
+  const cs = document.getElementById('cs' + n);
+  if (cs) {
+    cs.className = 'chs-box chs-done';
+    cs.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+  
+  const row = document.getElementById(id);
+  if (row) row.classList.add('done');
+  
+  const ptsEl = document.getElementById('rpts');
+  const progEl = document.getElementById('rprog');
+  const fillEl = document.getElementById('pfill');
+  
+  if (ptsEl) ptsEl.textContent = rPts + ' pts';
+  if (progEl) progEl.textContent = rN + ' / 10';
+  if (fillEl) fillEl.style.width = (rN * 10) + '%';
+  
+  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+  toast('+' + pts + ' pts — ' + name);
+}
+
+function claimR() {
+  toast(rPts >= 200 ? '¡10% de descuento aplicado con éxito!' : 'Necesitas un mínimo de 200 pts');
+}
+
+// ============================================================================
+// 11. RECURSOS AUXILIARES Y UTILIDADES DE FORMATO
+// ============================================================================
+function fmt(n) { return '$' + n.toLocaleString('es-CO'); }
+function selAmb(el, name) {
+  document.querySelectorAll('.amb-card').forEach(c => c.classList.remove('on'));
+  if (el) el.classList.add('on');
+  toast('Explorando: ' + name);
+}
+
+let tt;
+function toast(msg) {
+  const t = document.getElementById('toast-el');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => t.classList.remove('show'), 2600);
 }
 </script>
 </body>
