@@ -762,8 +762,6 @@ const P = {
 const ENTRADA = { x: 15, y: 25 };
 const SALIDA = { x: 85, y: 105 };
 
-// Variable global para almacenar la secuencia calculada dinámicamente
-let steps = [];
 // ── SPLASH ──
 window.addEventListener('load',()=>{
   renderHomeProds();renderDPList();
@@ -998,7 +996,7 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
  * Ordena los productos del carrito reduciendo la distancia total recorrida
  */
  function calcularRutaOptima() {
-  // Obtener las llaves de los productos que están actualmente en el carrito
+  // Obtener las llaves de los productos activos en el carrito
   let unvisited = Object.keys(cart).filter(key => cart[key] > 0);
   let optimizedSteps = [];
   
@@ -1010,7 +1008,6 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
 
     for (let i = 0; i < unvisited.length; i++) {
       let prod = P[unvisited[i]];
-      // Distancia Euclidiana estándar
       let dist = Math.hypot(prod.mapX - currentPos.x, prod.mapY - currentPos.y);
       
       if (dist < minDistance) {
@@ -1019,7 +1016,6 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
       }
     }
 
-    // Seleccionamos el más cercano, actualizamos posición de control y repetimos
     let nextKey = unvisited.splice(nearestIndex, 1)[0];
     optimizedSteps.push(nextKey);
     currentPos = { x: P[nextKey].mapX, y: P[nextKey].mapY };
@@ -1028,17 +1024,22 @@ function updBadge(){const n=Object.keys(cart).length,b=document.getElementById('
   return optimizedSteps;
 }
 
+// CORRECCIÓN CRÍTICA: Inicializamos llamando a la función para que no esté vacío al cargar la app
+let steps = calcularRutaOptima(); 
+
 /**
- * Renderiza el mapa SVG dibujando los nodos dinámicos y la línea de ruta optimizada
+ * Renderiza el mapa SVG con soporte dinámico y validación de rutas vacías
  */
 function renderMapa() {
-  // 1. Recalcular la secuencia óptima según el estado actual del carrito
+  // Recalcular la secuencia óptima según el estado actual del carrito
   steps = calcularRutaOptima();
   
   const pathEl = document.getElementById('route-path');
   const pinsContainer = document.getElementById('map-pins');
   
-  pinsContainer.innerHTML = ''; // Limpiar pines anteriores
+  if(!pinsContainer || !pathEl) return; // Validación de seguridad por si no se ha cargado el DOM por completo
+  
+  pinsContainer.innerHTML = ''; 
 
   if (steps.length === 0) {
     pathEl.setAttribute('d', '');
@@ -1046,37 +1047,32 @@ function renderMapa() {
     return;
   }
 
-  // 2. Construir el path string del SVG iniciando en la Entrada
+  // Construir el path string del SVG iniciando en la Entrada
   let dParam = `M ${ENTRADA.x} ${ENTRADA.y}`;
   
-  // Agregar cada nodo de producto optimizado al trayecto
   steps.forEach((key) => {
     dParam += ` L ${P[key].mapX} ${P[key].mapY}`;
   });
 
-  // Si ya se visitaron todos los productos y se avanzó al final, conectar a la salida
   if (navStep >= steps.length) {
     dParam += ` L ${SALIDA.x} ${SALIDA.y}`;
   }
   
   pathEl.setAttribute('d', dParam);
 
-  // 3. Renderizar los Pines de los productos en el mapa
+  // Renderizar Pines dinámicamente
   steps.forEach((key, index) => {
     const prod = P[key];
     const isCurrent = index === navStep;
     const isVisited = index < navStep;
 
-    // Color del pin según su estado en la navegación
-    let pinColor = '#FFDB00'; // Pendiente (Amarillo IKEA)
-    if (isCurrent) pinColor = '#0058A3'; // Siguiente producto a recoger (Azul)
-    if (isVisited) pinColor = '#C8C8C4'; // Ya recogido (Gris)
+    let pinColor = '#FFDB00'; 
+    if (isCurrent) pinColor = '#0058A3'; 
+    if (isVisited) pinColor = '#C8C8C4'; 
 
-    // Crear elemento de grupo para el Pin
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', `map-pin ${isCurrent ? 'active' : ''}`);
     
-    // Círculo base del Pin
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', prod.mapX);
     circle.setAttribute('cy', prod.mapY);
@@ -1085,7 +1081,6 @@ function renderMapa() {
     circle.setAttribute('stroke', '#111110');
     circle.setAttribute('stroke-width', '0.5');
     
-    // Número indicador de orden en la ruta optimizada
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', prod.mapX);
     text.setAttribute('y', prod.mapY + 1.2);
@@ -1101,7 +1096,7 @@ function renderMapa() {
     pinsContainer.appendChild(g);
   });
 
-  // 4. Actualizar instrucciones dinámicas en la interfaz inferior
+  // Actualizar instrucciones inferiores
   if (navStep < steps.length) {
     const currentKey = steps[navStep];
     document.getElementById('m-inst').innerHTML = `
@@ -1119,29 +1114,6 @@ function renderMapa() {
       <div style="font-size:13px; color:#6e6e6a;">Dirígete a la zona de cajas fijada al final del mapa.</div>
     `;
   }
-}
-
-/**
- * Modificación en el avance de navegación para soportar el arreglo dinámico
- */
-function nextNav() {
-  if (!steps.length) {
-    toast('Agrega productos al carrito primero');
-    return;
-  }
-  if (navStep >= steps.length) {
-    toast('¡Ya estás en la zona de salida!');
-    return;
-  }
-  if (navigator.vibrate) navigator.vibrate([30, 20, 50]);
-  
-  navStep++;
-  if (navStep < steps.length) {
-    toast('Siguiente parada: → ' + P[steps[navStep]].name);
-  } else {
-    toast('¡Ruta completada! Dirígete a Cajas.');
-  }
-  renderMapa();
 }
 
 // ── RETO ──
